@@ -1,0 +1,57 @@
+// GabAi - Capstone Backend Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  fullName  String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks Task[]
+
+  @@map("users")
+}
+
+model Task {
+  id           String     @id @default(cuid())
+  title        String
+  description  String     @default("")
+  subject      String
+  priority     String
+  dueDate      String
+  dueTime      String
+  hasReminder  Boolean    @default(false)
+  completed    Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  subTasks     SubTask[]
+
+  @@index([userId])
+  @@map("tasks")
+}
+
+model SubTask {
+  id          String   @id @default(cuid())
+  title       String
+  completed   Boolean  @default(false)
+
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("sub_tasks")
+}
