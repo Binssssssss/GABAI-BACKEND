@@ -10,7 +10,7 @@ export interface LoginInput {
 }
 
 export interface TokenPayload {
-  userId: string;
+  id: string;
   email: string;
   [key: string]: unknown;
 }

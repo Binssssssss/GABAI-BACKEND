@@ -10,7 +10,7 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   fullName  String
   email     String   @unique
   password  String
@@ -19,11 +19,15 @@ model User {
 
   tasks Task[]
 
+  notifications Notification[]
+  focusSessions FocusSession[]
+recentActivities RecentActivity[]
+
   @@map("users")
 }
 
 model Task {
-  id           String     @id @default(cuid())
+  id           String     @id @default(uuid())
   title        String
   description  String     @default("")
   subject      String
@@ -45,7 +49,7 @@ model Task {
 }
 
 model SubTask {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   title       String
   completed   Boolean  @default(false)
 
@@ -54,4 +58,58 @@ model SubTask {
 
   @@index([taskId])
   @@map("sub_tasks")
+}
+model Notification {
+  id           String   @id @default(uuid())
+  title        String
+  message      String
+  type         String
+  time         String
+  read         Boolean  @default(false)
+  icon         String
+  iconColor    String
+  taskId       String?
+  assignmentId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([taskId])
+  @@index([assignmentId])
+  @@map("notifications")
+}
+model FocusSession {
+  id            String    @id @default(uuid())
+  userId        String
+  duration      Int
+  remainingTime Int
+  targetHours   Float     @default(1.5)
+  status        String    @default("IDLE")
+  startedAt     DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("focus_sessions")
+}
+model RecentActivity {
+  id        String   @id @default(uuid())
+  userId    String
+  icon      String
+  text      String
+  type      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("recent_activities")
 }

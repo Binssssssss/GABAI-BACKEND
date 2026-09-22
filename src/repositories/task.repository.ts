@@ -1,22 +1,73 @@
-import { prisma } from "@/lib/prisma";
-import { CreateTaskInput, UpdateTaskInput } from "@/types/task.types";
+import {prisma} from "../lib/prisma";
+
+import {
+  CreateTaskInput,
+  UpdateTaskInput,
+  TaskFilters,
+  RescheduleTaskInput,
+} from "../types/task.types";
 
 export class TaskRepository {
-  async findAllByUser(userId: string) {
+  async findAllByUser(
+    userId: string,
+    filters?: TaskFilters,
+  ) {
     return prisma.task.findMany({
       where: {
         userId,
+
+        ...(filters?.search && {
+          OR: [
+            {
+              title: {
+                contains: filters.search,
+                mode: "insensitive",
+              },
+            },
+            {
+              description: {
+                contains: filters.search,
+                mode: "insensitive",
+              },
+            },
+            {
+              subject: {
+                contains: filters.search,
+                mode: "insensitive",
+              },
+            },
+          ],
+        }),
+
+        ...(filters?.category &&
+          filters.category !== "All" && {
+            subject: filters.category,
+          }),
+
+        ...(filters?.date && {
+          dueDate: filters.date,
+        }),
       },
+
       include: {
         subTasks: true,
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+
+      orderBy: [
+        {
+          dueDate: "asc",
+        },
+        {
+          dueTime: "asc",
+        },
+      ],
     });
   }
 
-  async findById(id: string, userId: string) {
+  async findById(
+    id: string,
+    userId: string,
+  ) {
     return prisma.task.findFirst({
       where: {
         id,
@@ -28,88 +79,167 @@ export class TaskRepository {
     });
   }
 
- async create(userId: string, data: CreateTaskInput) {
-  return prisma.task.create({
-    data: {
-      title: data.title,
-      description: data.description ?? "",
-      subject: data.subject,
-      priority: data.priority,
-      dueDate: data.dueDate,
-      dueTime: data.dueTime,
-      hasReminder: data.hasReminder ?? false,
-      userId,
-
-      subTasks: {
-        create: (data.subTasks ?? []).map((title) => ({
-          title,
-        })),
+  async findByDate(
+    userId: string,
+    date: string,
+  ) {
+    return prisma.task.findMany({
+      where: {
+        userId,
+        dueDate: date,
       },
-    },
-    include: {
-      subTasks: true,
-    },
-  });
-}
 
-  async update(id: string, userId: string, data: UpdateTaskInput) {
-    const existingTask = await this.findById(id, userId);
+      include: {
+        subTasks: true,
+      },
 
-    if (!existingTask) {
-      return null;
-    }
-
-    const { subTasks, ...taskData } = data;
-
-    return prisma.$transaction(async (tx) => {
-      await tx.task.update({
-        where: {
-          id,
-        },
-        data: taskData,
-      });
-
-      if (subTasks !== undefined) {
-        await tx.subTask.deleteMany({
-          where: {
-            taskId: id,
-          },
-        });
-
-        if (subTasks.length > 0) {
-          await tx.subTask.createMany({
-            data: subTasks.map((title) => ({
-              title,
-              taskId: id,
-            })),
-          });
-        }
-      }
-
-      return tx.task.findUnique({
-        where: {
-          id,
-        },
-        include: {
-          subTasks: true,
-        },
-      });
+      orderBy: {
+        dueTime: "asc",
+      },
     });
   }
 
-  async delete(id: string, userId: string) {
-    const existingTask = await this.findById(id, userId);
+  async create(
+    userId: string,
+    data: CreateTaskInput,
+  ) {
+    return prisma.task.create({
+      data: {
+        title: data.title,
+        description: data.description ?? "",
+        subject: data.subject,
+        priority: data.priority,
+        dueDate: data.dueDate,
+        dueTime: data.dueTime ?? "",
+        hasReminder: data.hasReminder ?? false,
+        completed: data.completed ?? false,
+        userId,
 
-    if (!existingTask) {
-      return null;
-    }
+        subTasks: {
+          create:
+            data.subTasks?.map((subTask) => ({
+              title: subTask.title,
+              completed: subTask.completed ?? false,
+            })) ?? [],
+        },
+      },
 
+      include: {
+        subTasks: true,
+      },
+    });
+  }
+
+  async update(
+    id: string,
+    userId: string,
+    data: UpdateTaskInput,
+  ) {
+    return prisma.task.update({
+      where: {
+        id,
+      },
+
+      data: {
+        ...(data.title !== undefined && {
+          title: data.title,
+        }),
+
+        ...(data.description !== undefined && {
+          description: data.description,
+        }),
+
+        ...(data.subject !== undefined && {
+          subject: data.subject,
+        }),
+
+        ...(data.priority !== undefined && {
+          priority: data.priority,
+        }),
+
+        ...(data.dueDate !== undefined && {
+          dueDate: data.dueDate,
+        }),
+
+        ...(data.dueTime !== undefined && {
+          dueTime: data.dueTime,
+        }),
+
+        ...(data.hasReminder !== undefined && {
+          hasReminder: data.hasReminder,
+        }),
+
+        ...(data.completed !== undefined && {
+          completed: data.completed,
+        }),
+      },
+
+      include: {
+        subTasks: true,
+      },
+    });
+  }
+
+  async delete(
+    id: string,
+    userId: string,
+  ) {
     return prisma.task.delete({
       where: {
         id,
       },
     });
   }
-}
 
-export const taskRepository = new TaskRepository();
+  async findUpcomingDeadlines(userId: string, limit = 3) {
+    return prisma.task.findMany({
+      
+      where: {
+        userId,
+        completed: false,
+        dueDate: {
+          gte: new Date().toISOString().split("T")[0],
+        },
+      },
+      include: {
+        subTasks: true,
+      },
+      orderBy: [
+        {
+          dueDate: "asc",
+        },
+        {
+          dueTime: "asc",
+        },
+      ],
+      take: limit,
+    });
+  }
+
+  async reschedule(
+    id: string,
+    userId: string,
+    data: RescheduleTaskInput,
+  ) {
+    return prisma.task.update({
+      where: {
+        id,
+        userId,
+      },
+
+      data: {
+        dueDate: data.dueDate,
+
+        ...(data.dueTime !== undefined && {
+          dueTime: data.dueTime,
+        }),
+      },
+
+      include: {
+        subTasks: true,
+      },
+    });
+  }
+}
+export const taskRepository =
+  new TaskRepository();
