@@ -1,24 +1,57 @@
-import { Request, Response } from "express";
-import { dashboardService } from "@/services/dashboard.service";
-import { asyncHandler } from "@/utils/helper";
+import {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
 
-export const getOverview = asyncHandler(
-  async (req: Request, res: Response) => {
-    const userId = req.user?.id;
+import {
+  dashboardService,
+} from "../services/dashboard.service";
 
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required.",
-      });
+import {
+  sendSuccess,
+  sendError,
+} from "../utils/response";
+
+export class DashboardController {
+
+  async getDashboard(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+
+    try {
+
+      const userId =
+        req.user?.id;
+
+      if (!userId) {
+        return sendError(
+          res,
+          "Authentication required",
+          401,
+        );
+      }
+
+      const dashboard =
+        await dashboardService.getDashboard(
+          userId,
+        );
+
+      return sendSuccess(
+        res,
+        "Dashboard data retrieved successfully",
+        dashboard,
+      );
+
+    } catch (error) {
+
+      next(error);
+
     }
+  }
+}
 
-    const overview =
-      await dashboardService.getOverview(userId);
-
-    return res.status(200).json({
-      success: true,
-      data: overview,
-    });
-  },
-);
+export const dashboardController =
+  new DashboardController();
