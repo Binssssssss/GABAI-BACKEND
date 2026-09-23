@@ -6,6 +6,7 @@ import {
   ChecklistItem,
   TaskFilters,
   RescheduleTaskInput,
+  UpdateSubTaskInput,
 } from "../types/task.types";
 
 function calculateProgress(
@@ -223,6 +224,46 @@ async rescheduleTask(
 
   return formatCalendarEvent(updatedTask);
 }
+async updateSubTask(
+  userId: string,
+  taskId: string,
+  subTaskId: string,
+  data: UpdateSubTaskInput,
+) {
+  const task = await taskRepository.findById(
+    taskId,
+    userId,
+  );
+
+  if (!task) {
+    throw new Error("Task not found");
+  }
+
+  const updatedSubTask =
+    await taskRepository.updateSubTask(
+      userId,
+      taskId,
+      subTaskId,
+      data,
+    );
+
+  if (!updatedSubTask) {
+    throw new Error("Subtask not found");
+  }
+
+  const updatedTask =
+    await taskRepository.findById(
+      taskId,
+      userId,
+    );
+
+  if (!updatedTask) {
+    throw new Error("Task not found");
+  }
+
+  return formatCalendarEvent(updatedTask);
+}
 }
 export const taskService =
   new TaskService();
+

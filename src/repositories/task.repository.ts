@@ -1,10 +1,12 @@
-import {prisma} from "../lib/prisma";
+
+import { prisma } from "../lib/prisma";
 
 import {
   CreateTaskInput,
   UpdateTaskInput,
   TaskFilters,
   RescheduleTaskInput,
+  UpdateSubTaskInput,
 } from "../types/task.types";
 
 export class TaskRepository {
@@ -73,6 +75,7 @@ export class TaskRepository {
         id,
         userId,
       },
+
       include: {
         subTasks: true,
       },
@@ -191,19 +194,25 @@ export class TaskRepository {
     });
   }
 
-  async findUpcomingDeadlines(userId: string, limit = 3) {
+  async findUpcomingDeadlines(
+    userId: string,
+    limit = 3,
+  ) {
     return prisma.task.findMany({
-      
       where: {
         userId,
         completed: false,
         dueDate: {
-          gte: new Date().toISOString().split("T")[0],
+          gte: new Date()
+            .toISOString()
+            .split("T")[0],
         },
       },
+
       include: {
         subTasks: true,
       },
+
       orderBy: [
         {
           dueDate: "asc",
@@ -212,6 +221,7 @@ export class TaskRepository {
           dueTime: "asc",
         },
       ],
+
       take: limit,
     });
   }
@@ -221,10 +231,21 @@ export class TaskRepository {
     userId: string,
     data: RescheduleTaskInput,
   ) {
-    return prisma.task.update({
+    // Check that the task belongs to the authenticated user.
+    const task = await prisma.task.findFirst({
       where: {
         id,
         userId,
+      },
+    });
+
+    if (!task) {
+      return null;
+    }
+
+    return prisma.task.update({
+      where: {
+        id,
       },
 
       data: {
@@ -240,6 +261,42 @@ export class TaskRepository {
       },
     });
   }
+
+  async updateSubTask(
+    userId: string,
+    taskId: string,
+    subTaskId: string,
+    data: UpdateSubTaskInput,
+  ) {
+    // Make sure the subtask belongs to both
+    // the requested task and authenticated user.
+    const subTask =
+      await prisma.subTask.findFirst({
+        where: {
+          id: subTaskId,
+          taskId,
+
+          task: {
+            userId,
+          },
+        },
+      });
+
+    if (!subTask) {
+      return null;
+    }
+
+    return prisma.subTask.update({
+      where: {
+        id: subTaskId,
+      },
+
+      data: {
+        completed: data.completed,
+      },
+    });
+  }
 }
+
 export const taskRepository =
   new TaskRepository();

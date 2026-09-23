@@ -60,6 +60,75 @@ export class TaskController {
       next(error);
     }
   }
+  async updateSubTask(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId =
+      typeof req.user?.id === "string"
+        ? req.user.id
+        : undefined;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const taskId = Array.isArray(req.params.id)
+      ? req.params.id[0]
+      : req.params.id;
+
+    if (typeof taskId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid task ID",
+      });
+    }
+
+    const subTaskId =
+      typeof req.params.subTaskId === "string"
+        ? req.params.subTaskId
+        : undefined;
+
+    if (!subTaskId) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid subtask ID",
+      });
+    }
+
+    const { completed } = req.body;
+
+    if (typeof completed !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "completed must be a boolean",
+      });
+    }
+
+    const updatedTask =
+      await taskService.updateSubTask(
+        userId,
+        taskId,
+        subTaskId,
+        {
+          completed,
+        },
+      );
+
+    return res.status(200).json({
+      success: true,
+      message: "Subtask updated successfully",
+      data: updatedTask,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 
   async getTasksByDate(
     req: Request,
