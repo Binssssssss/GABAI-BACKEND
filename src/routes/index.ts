@@ -10,7 +10,10 @@ import academicPressureRoutes from "./academic-pressure.routes";
 import smartReminderRoutes from "./smart-reminder.routes";
 import subjectProgressRoutes from "./subject-progress.routes";
 import todaysFocusRoutes from "./todays-focus.routes";
+import transactionRoutes from "./transaction.routes";
 const router = Router();
+
+
 
 router.use("/auth", authRoutes);
 router.use("/tasks", taskRoutes);
@@ -22,4 +25,5 @@ router.use("/academic-pressure", academicPressureRoutes);
 router.use("/smart-reminders", smartReminderRoutes);
 router.use("/subject-progress", subjectProgressRoutes);
 router.use("/dashboard/todays-focus", todaysFocusRoutes);
+router.use("/transactions", transactionRoutes);
 export default router;

@@ -1,5 +1,3 @@
-// GabAi - Capstone Backend Prisma Schema
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -10,77 +8,75 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  fullName  String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  tasks Task[]
-
-  notifications Notification[]
-  focusSessions FocusSession[]
-recentActivities RecentActivity[]
+  id               String           @id @default(uuid())
+  fullName         String
+  email            String           @unique
+  password         String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  focusSessions    FocusSession[]
+  notifications    Notification[]
+  recentActivities RecentActivity[]
+  subjects         subjects[]
+  tasks            Task[]
+  transactions     Transaction[]
 
   @@map("users")
 }
 
 model Task {
-  id           String     @id @default(uuid())
-  title        String
-  description  String     @default("")
-  subject      String
-  priority     String
-  dueDate      String
-  dueTime      String
-  hasReminder  Boolean    @default(false)
-  completed    Boolean    @default(false)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-
-  userId       String
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  subTasks     SubTask[]
+  id          String    @id @default(uuid())
+  title       String
+  description String    @default("")
+  subject     String
+  priority    String
+  dueDate     String
+  dueTime     String
+  hasReminder Boolean   @default(false)
+  completed   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String
+  subTasks    SubTask[]
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("tasks")
 }
 
 model SubTask {
-  id          String   @id @default(uuid())
-  title       String
-  completed   Boolean  @default(false)
-
-  taskId      String
-  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  id        String  @id @default(uuid())
+  title     String
+  completed Boolean @default(false)
+  taskId    String
+  task      Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
   @@map("sub_tasks")
 }
+
 model Notification {
   id           String   @id @default(uuid())
   title        String
   message      String
-  type         String
-  time         String
   read         Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  userId       String
+  assignmentId String?
   icon         String
   iconColor    String
   taskId       String?
-  assignmentId String?
-  createdAt    DateTime @default(now())
+  time         String
+  type         String
   updatedAt    DateTime @updatedAt
-  userId       String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([taskId])
   @@index([assignmentId])
   @@map("notifications")
 }
+
 model FocusSession {
   id            String    @id @default(uuid())
   userId        String
@@ -92,13 +88,13 @@ model FocusSession {
   endedAt       DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
   @@map("focus_sessions")
 }
+
 model RecentActivity {
   id        String   @id @default(uuid())
   userId    String
@@ -106,10 +102,39 @@ model RecentActivity {
   text      String
   type      String
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([createdAt])
   @@map("recent_activities")
+}
+
+model subjects {
+  id        String   @id
+  name      String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  users     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  title     String
+  amount    Float
+  type      String
+  category  String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([category])
+  @@index([createdAt])
+  @@map("transactions")
 }
