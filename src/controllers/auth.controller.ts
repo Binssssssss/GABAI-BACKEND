@@ -18,3 +18,4 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
   return res.status(200).json(result);
 });
 
+
