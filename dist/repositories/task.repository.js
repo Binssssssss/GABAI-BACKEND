@@ -145,7 +145,9 @@ export class TaskRepository {
                 userId,
                 completed: false,
                 dueDate: {
-                    gte: new Date().toISOString().split("T")[0],
+                    gte: new Date()
+                        .toISOString()
+                        .split("T")[0],
                 },
             },
             include: {
@@ -163,10 +165,19 @@ export class TaskRepository {
         });
     }
     async reschedule(id, userId, data) {
-        return prisma.task.update({
+        // Check that the task belongs to the authenticated user.
+        const task = await prisma.task.findFirst({
             where: {
                 id,
                 userId,
+            },
+        });
+        if (!task) {
+            return null;
+        }
+        return prisma.task.update({
+            where: {
+                id,
             },
             data: {
                 dueDate: data.dueDate,
@@ -176,6 +187,30 @@ export class TaskRepository {
             },
             include: {
                 subTasks: true,
+            },
+        });
+    }
+    async updateSubTask(userId, taskId, subTaskId, data) {
+        // Make sure the subtask belongs to both
+        // the requested task and authenticated user.
+        const subTask = await prisma.subTask.findFirst({
+            where: {
+                id: subTaskId,
+                taskId,
+                task: {
+                    userId,
+                },
+            },
+        });
+        if (!subTask) {
+            return null;
+        }
+        return prisma.subTask.update({
+            where: {
+                id: subTaskId,
+            },
+            data: {
+                completed: data.completed,
             },
         });
     }

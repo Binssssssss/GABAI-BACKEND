@@ -24,7 +24,7 @@ export interface CreateTaskSubTaskInput {
 export interface CreateTaskInput {
   title: string;
   description?: string;
-  subject: TaskCategory;
+  subject: string;
   priority: TaskPriority;
   dueDate: string;
   dueTime?: string;
@@ -36,7 +36,7 @@ export interface CreateTaskInput {
 export interface UpdateTaskInput {
   title?: string;
   description?: string;
-  subject?: TaskCategory;
+  subject?: string;
   priority?: TaskPriority;
   dueDate?: string;
   dueTime?: string;
@@ -73,4 +73,18 @@ export interface CalendarEvent {
 }
 export interface UpdateSubTaskInput {
   completed: boolean;
+}
+export interface ConvertNoteToTaskInput {
+  noteId: string;
+  title: string;
+  description: string;
+  subject: string;
+  priority: 'Low' | 'Medium' | 'High';
+  category: string;
+  difficulty?: string;
+  duration?: number;
+  dueDate?: string;
+  dueTime?: string;
+  hasReminder?: boolean;
+  repeat?: string;
 }

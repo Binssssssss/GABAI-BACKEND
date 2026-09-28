@@ -11,6 +11,7 @@ import smartReminderRoutes from "./smart-reminder.routes";
 import subjectProgressRoutes from "./subject-progress.routes";
 import todaysFocusRoutes from "./todays-focus.routes";
 import transactionRoutes from "./transaction.routes";
+import noteRoutes from './note.routes';
 const router = Router();
 
 
@@ -26,4 +27,5 @@ router.use("/smart-reminders", smartReminderRoutes);
 router.use("/subject-progress", subjectProgressRoutes);
 router.use("/dashboard/todays-focus", todaysFocusRoutes);
 router.use("/transactions", transactionRoutes);
+router.use('/notes', noteRoutes);
 export default router;

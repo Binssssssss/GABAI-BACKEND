@@ -33,7 +33,7 @@ export class AuthService {
             throw new AppError("Invalid email or password", 401);
         }
         const tokenPayload = {
-            userId: user.id,
+            id: user.id,
             email: user.email,
         };
         const token = generateAccessToken(tokenPayload);
@@ -53,7 +53,7 @@ export class AuthService {
         // Only generate a token if the user exists, but ALWAYS return the same
         // generic message so attackers can't discover which emails are registered.
         if (user) {
-            const resetToken = generateAccessToken({ userId: user.id, email: user.email });
+            const resetToken = generateAccessToken({ id: user.id, email: user.email });
             // TODO: send this by email once an email provider is added.
             // For now it is logged so you can test the flow during development.
             console.log(`🔑 Password reset link for ${email}:`);

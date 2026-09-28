@@ -8,7 +8,7 @@ export class SubjectController {
     next: NextFunction,
   ) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user.id;
 
       const subjects = await subjectService.getSubjects(userId);
 
@@ -27,7 +27,7 @@ export class SubjectController {
     next: NextFunction,
   ) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user.id;
       const { id } = req.params as { id: string };
 
       const subject = await subjectService.getSubject(
@@ -50,7 +50,7 @@ export class SubjectController {
     next: NextFunction,
   ) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user.id;
       const { name } = req.body;
 
       const subject = await subjectService.createSubject(
@@ -73,7 +73,7 @@ export class SubjectController {
     next: NextFunction,
   ) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user.id;
       const { id } = req.params as { id: string };
       const { name } = req.body;
 
@@ -98,7 +98,7 @@ export class SubjectController {
     next: NextFunction,
   ) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user.id;
       const { id } = req.params as { id: string };
 
       const result = await subjectService.deleteSubject(

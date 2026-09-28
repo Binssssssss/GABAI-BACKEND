@@ -1,47 +1,28 @@
 import { Router } from "express";
-import { taskController } from "../controllers/task.controller";
-import notificationRoutes from "@/routes/notification.routes";
-import { authMiddleware } from "@/middleware/auth.middleware";
-import { taskRouter } from "./task.routes";
-import academicPressureRoutes from "./academic-pressure.routes";
 import authRoutes from "./auth.routes";
-import focusSessionRoutes from "@/routes/focus-session.routes";
+import taskRoutes from "./task.routes";
+import notificationRoutes from "./notification.routes";
+import focusSessionRoutes from "./focus-session.routes";
+import dashboardRoutes from "./dashboard.routes";
+import recentActivityRoutes from "./recent-activity.routes";
+import academicPressureRoutes from "./academic-pressure.routes";
+import smartReminderRoutes from "./smart-reminder.routes";
+import subjectProgressRoutes from "./subject-progress.routes";
+import todaysFocusRoutes from "./todays-focus.routes";
+import transactionRoutes from "./transaction.routes";
+import noteRoutes from './note.routes';
 const router = Router();
 router.use("/auth", authRoutes);
-/*
- * Everything below requires authentication.
- */
-router.use(authMiddleware);
-/*
- * Get all tasks for logged-in user
- */
-router.get("/", taskController.getAllTasks.bind(taskController));
-/*
- * Get tasks for a specific date
- *
- * Example:
- * /api/tasks/date/2026-09-19
- */
-router.get("/date/:date", taskController.getTasksByDate.bind(taskController));
-/*
- * Get one task
- */
-router.get("/:id", taskController.getTaskById.bind(taskController));
-/*
- * Create task
- */
-router.post("/", taskController.createTask.bind(taskController));
-/*
- * Update task
- */
-router.patch("/:id", taskController.updateTask.bind(taskController));
-/*
- * Delete task
- */
-router.delete("/:id", taskController.deleteTask.bind(taskController));
-router.use("/tasks", taskRouter);
-router.use("/academic-pressure", academicPressureRoutes);
+router.use("/tasks", taskRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/focus-sessions", focusSessionRoutes);
+router.use("/dashboard", dashboardRoutes);
+router.use("/recent-activities", recentActivityRoutes);
+router.use("/academic-pressure", academicPressureRoutes);
+router.use("/smart-reminders", smartReminderRoutes);
+router.use("/subject-progress", subjectProgressRoutes);
+router.use("/dashboard/todays-focus", todaysFocusRoutes);
+router.use("/transactions", transactionRoutes);
+router.use('/notes', noteRoutes);
 export default router;
 //# sourceMappingURL=index.js.map

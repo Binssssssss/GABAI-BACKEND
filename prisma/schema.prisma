@@ -20,6 +20,8 @@ model User {
   subjects         subjects[]
   tasks            Task[]
   transactions     Transaction[]
+  notes            Note[]
+  noteTemplates    NoteTemplate[]
 
   @@map("users")
 }
@@ -128,13 +130,51 @@ model Transaction {
   type      String
   category  String
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([type])
   @@index([category])
   @@index([createdAt])
   @@map("transactions")
+}
+
+model Note {
+  id         String   @id @default(uuid())
+  title      String   @default("Untitled Note")
+  content    String   @default("")
+  type       String   @default("BLANK")
+  category   String   @default("General")
+  tags       String[] @default([])
+  isPinned   Boolean  @default(false)
+  isFavorite Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([category])
+  @@index([isPinned])
+  @@index([isFavorite])
+  @@index([isArchived])
+  @@map("notes")
+}
+
+model NoteTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  content     String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String? // null = built-in template shared by everyone
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("note_templates")
 }

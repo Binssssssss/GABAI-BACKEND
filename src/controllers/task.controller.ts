@@ -412,6 +412,112 @@ async rescheduleTask(
     next(error);
   }
 }
+async convertNoteToTask(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId =
+      typeof req.user?.id === "string"
+        ? req.user.id
+        : undefined;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const {
+      noteId,
+      title,
+      description,
+      subject,
+      priority,
+      dueDate,
+      dueTime,
+      hasReminder,
+    } = req.body;
+
+    if (!noteId) {
+      return res.status(400).json({
+        success: false,
+        message: "Note ID is required",
+      });
+    }
+
+    if (
+      typeof title !== "string" ||
+      !title.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Task title is required",
+      });
+    }
+
+    if (
+      typeof subject !== "string" ||
+      !subject.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Subject is required",
+      });
+    }
+
+    if (!priority) {
+      return res.status(400).json({
+        success: false,
+        message: "Priority is required",
+      });
+    }
+
+    const task =
+      await taskService.createTask(
+        userId,
+        {
+          title: title.trim(),
+          description:
+            typeof description === "string"
+              ? description
+              : "",
+          subject: subject.trim(),
+          priority,
+          dueDate:
+            typeof dueDate === "string"
+              ? dueDate
+              : new Date(
+                  Date.now() +
+                    86400000 * 2,
+                )
+                  .toISOString()
+                  .split("T")[0],
+          dueTime:
+            typeof dueTime === "string"
+              ? dueTime
+              : "18:00",
+          hasReminder:
+            typeof hasReminder === "boolean"
+              ? hasReminder
+              : false,
+          subTasks: [],
+        },
+      );
+
+    return res.status(201).json({
+      success: true,
+      message:
+        "Note converted to task successfully",
+      data: task,
+    });
+  } catch (error) {
+    next(error);
+  }
 }
+}
+
 export const taskController =
   new TaskController();

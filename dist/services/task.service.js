@@ -83,6 +83,22 @@ export class TaskService {
         const updatedTask = await taskRepository.reschedule(taskId, userId, data);
         return formatCalendarEvent(updatedTask);
     }
+    async updateSubTask(userId, taskId, subTaskId, data) {
+        const task = await taskRepository.findById(taskId, userId);
+        if (!task) {
+            throw new Error("Task not found");
+        }
+        const updatedSubTask = await taskRepository.updateSubTask(userId, taskId, subTaskId, data);
+        if (!updatedSubTask) {
+            throw new Error("Subtask not found");
+        }
+        const updatedTask = await taskRepository.findById(taskId, userId);
+        if (!updatedTask) {
+            throw new Error("Task not found");
+        }
+        return formatCalendarEvent(updatedTask);
+    }
 }
+
 export const taskService = new TaskService();
 //# sourceMappingURL=task.service.js.map

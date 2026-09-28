@@ -7,10 +7,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.get("/health", (_req, res) => {
-    res.json({ status: "ok" });
+    res.json({
+        status: "ok",
+    });
 });
 app.use("/api", routes);
 app.use(notFoundMiddleware);
-app.use(errorMiddleware); // dapat naa ni sa last
+app.use(errorMiddleware);
 export default app;
 //# sourceMappingURL=app.js.map

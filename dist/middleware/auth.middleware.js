@@ -3,6 +3,7 @@ import { sendError } from "@/utils/response";
 // Protects routes: requires "Authorization: Bearer <token>" header.
 export function authMiddleware(req, res, next) {
     const header = req.headers.authorization;
+    console.log('AUTH HEADER RECEIVED:', header);
     if (!header || !header.startsWith("Bearer ")) {
         return sendError(res, "Authentication required. Please log in.", 401);
     }
@@ -11,7 +12,8 @@ export function authMiddleware(req, res, next) {
         req.user = payload;
         next();
     }
-    catch {
+    catch (err) {
+        console.log('TOKEN VERIFY FAILED:', err);
         return sendError(res, "Invalid or expired token. Please log in again.", 401);
     }
 }

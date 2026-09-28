@@ -37,6 +37,13 @@ router.post(
   taskController.createTask.bind(taskController),
 );
 
+// Convert note to task
+router.post(
+  "/from-note",
+  authMiddleware,
+  taskController.convertNoteToTask.bind(taskController),
+);
+
 // Update subtask checklist
 router.patch(
   "/:id/subtasks/:subTaskId",
