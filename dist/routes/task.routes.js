@@ -13,6 +13,8 @@ router.get("/upcoming", authMiddleware, taskController.getUpcomingDeadlines.bind
 router.get("/date/:date", authMiddleware, taskController.getTasksByDate.bind(taskController));
 // Create task
 router.post("/", authMiddleware, taskController.createTask.bind(taskController));
+// Convert note to task
+router.post("/from-note", authMiddleware, taskController.convertNoteToTask.bind(taskController));
 // Update subtask checklist
 router.patch("/:id/subtasks/:subTaskId", authMiddleware, taskController.updateSubTask.bind(taskController));
 // Reschedule task

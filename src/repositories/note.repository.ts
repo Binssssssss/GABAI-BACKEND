@@ -2,6 +2,7 @@ import {prisma} from '../config/prisma';
 import {
   CreateNoteInput,
   UpdateNoteInput,
+  NoteFilters,
 } from '../types/note.types';
 
 export const createNote = async (
@@ -20,22 +21,111 @@ export const createNote = async (
   });
 };
 
-export const getNotes = async (userId: string) => {
+export const getNotes = async (
+  userId: string,
+  filters?: NoteFilters,
+) => {
+  const where: any = {
+    userId,
+  };
+
+  // Filter by tab
+  if (filters?.tab === 'pinned') {
+    where.isPinned = true;
+    where.isArchived = false;
+  }
+
+  if (filters?.tab === 'favorites') {
+    where.isFavorite = true;
+    where.isArchived = false;
+  }
+
+  if (filters?.tab === 'archived') {
+    where.isArchived = true;
+  }
+
+  if (filters?.tab === 'all') {
+    where.isArchived = false;
+  }
+
+  // Filter by category
+  if (
+    filters?.category &&
+    filters.category !== 'All'
+  ) {
+    where.category = filters.category;
+  }
+
+  // Filter by tag
+  if (filters?.tag) {
+    where.tags = {
+      has: filters.tag,
+    };
+  }
+
+  // Search title/content/category
+  if (filters?.search) {
+    where.OR = [
+      {
+        title: {
+          contains: filters.search,
+          mode: 'insensitive',
+        },
+      },
+      {
+        content: {
+          contains: filters.search,
+          mode: 'insensitive',
+        },
+      },
+      {
+        category: {
+          contains: filters.search,
+          mode: 'insensitive',
+        },
+      },
+    ];
+  }
+
+  // Sorting
+  let orderBy: any = {
+    updatedAt: 'desc',
+  };
+
+  switch (filters?.sortBy) {
+    case 'created':
+      orderBy = {
+        createdAt: filters.sortOrder ?? 'desc',
+      };
+      break;
+
+    case 'title':
+      orderBy = {
+        title: filters.sortOrder ?? 'asc',
+      };
+      break;
+
+    case 'category':
+      orderBy = {
+        category: filters.sortOrder ?? 'asc',
+      };
+      break;
+
+    case 'updated':
+    default:
+      orderBy = {
+        updatedAt: filters?.sortOrder ?? 'desc',
+      };
+      break;
+  }
+
   const notes = await prisma.note.findMany({
-    where: {
-      userId,
-      isArchived: false,
-    },
-    orderBy: {
-      updatedAt: 'desc',
-    },
+    where,
+    orderBy,
   });
 
   const total = await prisma.note.count({
-    where: {
-      userId,
-      isArchived: false,
-    },
+    where,
   });
 
   return {

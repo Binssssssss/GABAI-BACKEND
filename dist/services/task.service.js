@@ -99,6 +99,5 @@ export class TaskService {
         return formatCalendarEvent(updatedTask);
     }
 }
-
 export const taskService = new TaskService();
 //# sourceMappingURL=task.service.js.map

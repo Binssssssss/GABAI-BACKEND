@@ -49,11 +49,20 @@ export type NoteFilterTab =
   | 'favorites'
   | 'archived';
 
+  export type NoteSortOption =
+  | "updated"
+  | "created"
+  | "title"
+  | "category";
+
+  
 export interface NoteFilters {
   tab?: NoteFilterTab;
   category?: string;
   tag?: string;
   search?: string;
+  sortBy?: NoteSortOption;
+  sortOrder?: "asc" | "desc";
 }
 
 export interface NoteListResponse {

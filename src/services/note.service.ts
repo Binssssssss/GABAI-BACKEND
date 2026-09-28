@@ -1,5 +1,5 @@
 import * as noteRepository from '../repositories/note.repository';
-import { CreateNoteInput, UpdateNoteInput } from '../types/note.types';
+import { CreateNoteInput, UpdateNoteInput, NoteFilters, } from '../types/note.types';
 
 export const createNote = async (
   userId: string,
@@ -8,8 +8,14 @@ export const createNote = async (
   return noteRepository.createNote(userId, data);
 };
 
-export const getNotes = async (userId: string) => {
-  return noteRepository.getNotes(userId);
+export const getNotes = async (
+  userId: string,
+  filters?: NoteFilters,
+) => {
+  return noteRepository.getNotes(
+    userId,
+    filters,
+  );
 };
 
 export const getArchivedNotes = async (

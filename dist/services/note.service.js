@@ -2,8 +2,8 @@ import * as noteRepository from '../repositories/note.repository';
 export const createNote = async (userId, data) => {
     return noteRepository.createNote(userId, data);
 };
-export const getNotes = async (userId) => {
-    return noteRepository.getNotes(userId);
+export const getNotes = async (userId, filters) => {
+    return noteRepository.getNotes(userId, filters);
 };
 export const getArchivedNotes = async (userId) => {
     return noteRepository.getArchivedNotes(userId);
