@@ -12,6 +12,7 @@ import subjectProgressRoutes from "./subject-progress.routes";
 import todaysFocusRoutes from "./todays-focus.routes";
 import transactionRoutes from "./transaction.routes";
 import noteRoutes from './note.routes';
+import assistantRoutes from './assistant.routes';
 const router = Router();
 
 
@@ -28,4 +29,5 @@ router.use("/subject-progress", subjectProgressRoutes);
 router.use("/dashboard/todays-focus", todaysFocusRoutes);
 router.use("/transactions", transactionRoutes);
 router.use('/notes', noteRoutes);
+router.use('/assistant', assistantRoutes);
 export default router;
