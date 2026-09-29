@@ -1,89 +1,523 @@
-import { Request, Response } from "express";
-import { taskService } from "@/services/task.service";
-import { asyncHandler } from "@/utils/helper";
+import {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
 
-export const getTasks = asyncHandler(
-  async (req: Request, res: Response) => {
-    const userId = req.user!.userId;
+import {
+  taskService,
+} from "../services/task.service";
 
-    const tasks = await taskService.getTasks(userId);
+export class TaskController {
+  async getAllTasks(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const userId =
+        typeof req.user?.id === "string"
+          ? req.user.id
+          : undefined;
 
-    return res.status(200).json(tasks);
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const search =
+        typeof req.query.search === "string"
+          ? req.query.search
+          : undefined;
+
+      const category =
+        typeof req.query.category === "string"
+          ? req.query.category
+          : undefined;
+
+      const date =
+        typeof req.query.date === "string"
+          ? req.query.date
+          : undefined;
+
+      const tasks =
+        await taskService.getAllTasks(
+          userId,
+          {
+            search,
+            category,
+            date,
+          },
+        );
+
+      return res.status(200).json({
+        success: true,
+        data: tasks,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-);
+  async updateSubTask(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId =
+      typeof req.user?.id === "string"
+        ? req.user.id
+        : undefined;
 
-export const getTaskById = asyncHandler(
-  async (req: Request, res: Response) => {
-    const userId = req.user!.userId;
-    const taskId = String(req.params.id);
-
-    if (!taskId) {
-      return res.status(400).json({
-        message: "Task ID is required",
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
       });
     }
 
-    const task = await taskService.getTaskById(
-      taskId,
-      userId
-    );
+    const taskId = Array.isArray(req.params.id)
+      ? req.params.id[0]
+      : req.params.id;
 
-    return res.status(200).json(task);
-  }
-);
-
-export const createTask = asyncHandler(
-  async (req: Request, res: Response) => {
-    const userId = req.user!.userId;
-
-    const task = await taskService.createTask(
-      userId,
-      req.body
-    );
-
-    return res.status(201).json(task);
-  }
-);
-
-export const updateTask = asyncHandler(
-  async (req: Request, res: Response) => {
-    const userId = req.user!.userId;
-    const taskId = String(req.params.id);
-
-    if (!taskId) {
+    if (typeof taskId !== "string") {
       return res.status(400).json({
-        message: "Task ID is required",
+        success: false,
+        message: "Invalid task ID",
       });
     }
 
-    const task = await taskService.updateTask(
-      taskId,
-      userId,
-      req.body
-    );
+    const subTaskId =
+      typeof req.params.subTaskId === "string"
+        ? req.params.subTaskId
+        : undefined;
 
-    return res.status(200).json(task);
-  }
-);
-
-export const deleteTask = asyncHandler(
-  async (req: Request, res: Response) => {
-    const userId = req.user!.userId;
-    const taskId = String(req.params.id);
-
-    if (!taskId) {
+    if (!subTaskId) {
       return res.status(400).json({
-        message: "Task ID is required",
+        success: false,
+        message: "Invalid subtask ID",
       });
     }
 
-    await taskService.deleteTask(
-      taskId,
-      userId
-    );
+    const { completed } = req.body;
+
+    if (typeof completed !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "completed must be a boolean",
+      });
+    }
+
+    const updatedTask =
+      await taskService.updateSubTask(
+        userId,
+        taskId,
+        subTaskId,
+        {
+          completed,
+        },
+      );
 
     return res.status(200).json({
-      message: "Task deleted successfully",
+      success: true,
+      message: "Subtask updated successfully",
+      data: updatedTask,
     });
+  } catch (error) {
+    next(error);
   }
-);
+}
+
+  async getTasksByDate(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const userId =
+        typeof req.user?.id === "string"
+          ? req.user.id
+          : undefined;
+
+      const date =
+        typeof req.params.date === "string"
+          ? req.params.date
+          : undefined;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      if (!date) {
+        return res.status(400).json({
+          success: false,
+          message: "Date is required",
+        });
+      }
+
+      const tasks =
+        await taskService.getTasksByDate(
+          userId,
+          date,
+        );
+
+      return res.status(200).json({
+        success: true,
+        data: tasks,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getTaskById(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const userId =
+        typeof req.user?.id === "string"
+          ? req.user.id
+          : undefined;
+
+      const id = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
+      const taskId = Array.isArray(id) ? id[0] : id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const task =
+        await taskService.getTaskById(
+          userId,
+          taskId,
+        );
+
+      return res.status(200).json({
+        success: true,
+        data: task,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async createTask(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const userId =
+        typeof req.user?.id === "string"
+          ? req.user.id
+          : undefined;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const task =
+        await taskService.createTask(
+          userId,
+          req.body,
+        );
+
+      return res.status(201).json({
+        success: true,
+        message:
+          "Task created successfully",
+        data: task,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateTask(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const userId =
+        typeof req.user?.id === "string"
+          ? req.user.id
+          : undefined;
+
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      if (typeof id !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid task ID",
+        });
+      }
+
+      const task =
+        await taskService.updateTask(
+          userId,
+          id,
+          req.body,
+        );
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Task updated successfully",
+        data: task,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteTask(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const userId =
+        typeof req.user?.id === "string"
+          ? req.user.id
+          : undefined;
+
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const result =
+        await taskService.deleteTask(
+          userId,
+          typeof id === "string" ? id : id[0],
+        );
+
+      return res.status(200).json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getUpcomingDeadlines(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId =
+      typeof req.user?.id === "string"
+        ? req.user.id
+        : undefined;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const deadlines =
+      await taskService.getUpcomingDeadlines(userId);
+
+    return res.status(200).json({
+      success: true,
+      data: deadlines,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+async rescheduleTask(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId =
+      typeof req.user?.id === "string"
+        ? req.user.id
+        : undefined;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const taskId = Array.isArray(req.params.id)
+      ? req.params.id[0]
+      : req.params.id;
+
+    const { dueDate, dueTime } =
+      req.body;
+
+    if (
+      typeof dueDate !== "string" ||
+      !dueDate.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "dueDate is required",
+      });
+    }
+
+    const updatedTask =
+      await taskService.rescheduleTask(
+        userId,
+        taskId,
+        {
+          dueDate,
+          dueTime,
+        },
+      );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Task rescheduled successfully",
+      data: updatedTask,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+async convertNoteToTask(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId =
+      typeof req.user?.id === "string"
+        ? req.user.id
+        : undefined;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const {
+      noteId,
+      title,
+      description,
+      subject,
+      priority,
+      dueDate,
+      dueTime,
+      hasReminder,
+    } = req.body;
+
+    if (!noteId) {
+      return res.status(400).json({
+        success: false,
+        message: "Note ID is required",
+      });
+    }
+
+    if (
+      typeof title !== "string" ||
+      !title.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Task title is required",
+      });
+    }
+
+    if (
+      typeof subject !== "string" ||
+      !subject.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Subject is required",
+      });
+    }
+
+    if (!priority) {
+      return res.status(400).json({
+        success: false,
+        message: "Priority is required",
+      });
+    }
+
+    const task =
+      await taskService.createTask(
+        userId,
+        {
+          title: title.trim(),
+          description:
+            typeof description === "string"
+              ? description
+              : "",
+          subject: subject.trim(),
+          priority,
+          dueDate:
+            typeof dueDate === "string"
+              ? dueDate
+              : new Date(
+                  Date.now() +
+                    86400000 * 2,
+                )
+                  .toISOString()
+                  .split("T")[0],
+          dueTime:
+            typeof dueTime === "string"
+              ? dueTime
+              : "18:00",
+          hasReminder:
+            typeof hasReminder === "boolean"
+              ? hasReminder
+              : false,
+          subTasks: [],
+        },
+      );
+
+    return res.status(201).json({
+      success: true,
+      message:
+        "Note converted to task successfully",
+      data: task,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+}
+
+export const taskController =
+  new TaskController();

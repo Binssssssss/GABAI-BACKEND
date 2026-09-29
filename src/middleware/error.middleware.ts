@@ -1,12 +1,23 @@
 import { NextFunction, Request, Response } from "express";
-import { AppError, sendError } from "@/utils/response";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function errorMiddleware(err: unknown, req: Request, res: Response, next: NextFunction) {
-  if (err instanceof AppError) {
-    return sendError(res, err.message, err.statusCode, err.errors);
-  }
+export function errorMiddleware(
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  console.error("=================================");
+  console.error("❌ BACKEND ERROR");
+  console.error("Message:", err?.message);
+  console.error("Stack:", err?.stack);
+  console.error("=================================");
 
-  console.error(err);
-  return sendError(res, "Something went wrong. Please try again later.", 500);
+  return res.status(err?.statusCode || 500).json({
+    success: false,
+    message: err?.message || "Something went wrong.",
+    error:
+      process.env.NODE_ENV === "development"
+        ? err?.stack
+        : undefined,
+  });
 }

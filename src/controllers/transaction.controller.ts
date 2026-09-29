@@ -1,215 +1,208 @@
 import { Request, Response } from "express";
+import {
+  createTransaction as createTransactionService,
+  getTransactions as getTransactionsService,
+  getTransaction as getTransactionService,
+  updateTransaction as updateTransactionService,
+  deleteTransaction as deleteTransactionService,
+  getWalletBalance as getWalletBalanceService,
+} from "../services/transaction.service";
 
-import * as transactionService from "@/services/transaction.service";
-
-type TransactionIdParams = {
-  id: string;
-};
-
-export const getTransactions = async (
+export async function createTransaction(
   req: Request,
-  res: Response,
-) => {
+  res: Response
+) {
   try {
-    const userId = req.user.userId;
+    const userId = req.user?.id;
 
-    const transactions =
-      await transactionService.getTransactionsByUser(userId);
-
-    return res.status(200).json({
-      success: true,
-      data: transactions,
-    });
-  } catch (error) {
-    console.error("Failed to get transactions:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch transactions.",
-    });
-  }
-};
-
-export const getTransactionById = async (
-  req: Request<TransactionIdParams>,
-  res: Response,
-) => {
-  try {
-    const userId = req.user.userId;
-    const id = req.params.id;
-
-    const transaction =
-      await transactionService.getTransactionById(
-        userId,
-        id,
-      );
-
-    if (!transaction) {
-      return res.status(404).json({
+    if (!userId) {
+      return res.status(401).json({
         success: false,
-        message: "Transaction not found.",
+        message: "Authentication required",
       });
     }
 
-    return res.status(200).json({
-      success: true,
-      data: transaction,
-    });
-  } catch (error) {
-    console.error("Failed to get transaction:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch transaction.",
-    });
-  }
-};
-
-export const createTransaction = async (
-  req: Request,
-  res: Response,
-) => {
-  try {
-    const userId = req.user.userId;
-
-    const {
-      title,
-      amount,
-      type,
-      category,
-      date,
-    } = req.body;
-
-    if (
-      !title ||
-      amount === undefined ||
-      !type ||
-      !category
-    ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Title, amount, type, and category are required.",
-      });
-    }
-
-    const transaction =
-      await transactionService.createTransaction(
-        userId,
-        {
-          title,
-          amount: Number(amount),
-          type,
-          category,
-          date,
-        },
-      );
+    const transaction = await createTransactionService(userId, req.body);
 
     return res.status(201).json({
       success: true,
+      message: "Transaction created successfully",
       data: transaction,
     });
   } catch (error) {
-    console.error("Failed to create transaction:", error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to create transaction";
 
-    return res.status(500).json({
+    return res.status(400).json({
       success: false,
-      message: "Failed to create transaction.",
+      message,
     });
   }
-};
+}
 
-export const updateTransaction = async (
-  req: Request<TransactionIdParams>,
-  res: Response,
-) => {
-  try {
-    const userId = req.user.userId;
-    const id = req.params.id;
-
-    const transaction =
-      await transactionService.updateTransaction(
-        userId,
-        id,
-        req.body,
-      );
-
-    if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        message: "Transaction not found.",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: transaction,
-    });
-  } catch (error) {
-    console.error("Failed to update transaction:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update transaction.",
-    });
-  }
-};
-
-export const deleteTransaction = async (
-  req: Request<TransactionIdParams>,
-  res: Response,
-) => {
-  try {
-    const userId = req.user.userId;
-    const id = req.params.id;
-
-    const transaction =
-      await transactionService.deleteTransaction(
-        userId,
-        id,
-      );
-
-    if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        message: "Transaction not found.",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Transaction deleted successfully.",
-    });
-  } catch (error) {
-    console.error("Failed to delete transaction:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to delete transaction.",
-    });
-  }
-};
-
-export const getWalletBalance = async (
+export async function getTransactions(
   req: Request,
-  res: Response,
-) => {
+  res: Response
+) {
   try {
-    const userId = req.user.userId;
+    const userId = req.user?.id;
 
-    const balance =
-      await transactionService.getWalletBalance(userId);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const transactions = await getTransactionsService(userId);
 
     return res.status(200).json({
       success: true,
+      message: "Transactions retrieved successfully",
+      data: transactions,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve transactions",
+    });
+  }
+}
+
+export async function getTransaction(
+  req: Request,
+  res: Response
+) {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const transaction = await getTransactionService(
+      String(req.params.id),
+      userId
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: transaction,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Transaction not found";
+
+    return res.status(404).json({
+      success: false,
+      message,
+    });
+  }
+}
+
+export async function updateTransaction(
+  req: Request,
+  res: Response
+) {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const transaction = await updateTransactionService(
+      String(req.params.id),
+      userId,
+      req.body
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Transaction updated successfully",
+      data: transaction,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to update transaction";
+
+    return res.status(400).json({
+      success: false,
+      message,
+    });
+  }
+}
+
+export async function deleteTransaction(
+  req: Request,
+  res: Response
+) {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    await deleteTransactionService(String(req.params.id), userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Transaction deleted successfully",
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to delete transaction";
+
+    return res.status(404).json({
+      success: false,
+      message,
+    });
+  }
+}
+
+export async function getWalletBalance(
+  req: Request,
+  res: Response
+) {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const balance = await getWalletBalanceService(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Wallet balance retrieved successfully",
       data: balance,
     });
   } catch (error) {
-    console.error("Failed to get wallet balance:", error);
-
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch wallet balance.",
+      message: "Failed to retrieve wallet balance",
     });
   }
-};
+}

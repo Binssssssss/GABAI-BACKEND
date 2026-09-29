@@ -19,17 +19,15 @@ model User {
   recent_activities recent_activities[]
   tasks             Task[]
   subjects          Subject[]
-  transactions      Transaction[]
-
+  
   @@map("users")
 }
-
 model Subject {
-  id     String @id @default(cuid())
-  name   String
-  userId String
+  id        String   @id @default(cuid())
+  name      String
+  userId    String
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -40,7 +38,7 @@ model Subject {
 }
 
 model Task {
-  id          String    @id @default(cuid())
+  id          String    @id @default(uuid())
   title       String
   description String    @default("")
   subject     String
@@ -60,7 +58,7 @@ model Task {
 }
 
 model SubTask {
-  id        String  @id @default(cuid())
+  id        String  @id @default(uuid())
   title     String
   completed Boolean @default(false)
   taskId    String
@@ -70,25 +68,8 @@ model SubTask {
   @@map("sub_tasks")
 }
 
-model focus_sessions {
-  id            String    @id
-  userId        String
-  duration      Int
-  remainingTime Int
-  targetHours   Float     @default(1.5)
-  status        String    @default("IDLE")
-  startedAt     DateTime?
-  endedAt       DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime
-  users         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([status])
-  @@index([userId])
-}
-
-model notifications {
-  id           String   @id
+model Notification {
+  id           String   @id @default(uuid())
   title        String
   message      String
   read         Boolean  @default(false)
@@ -100,12 +81,31 @@ model notifications {
   taskId       String?
   time         String
   type         String
-  updatedAt    DateTime
-  users        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([assignmentId])
-  @@index([taskId])
   @@index([userId])
+  @@index([taskId])
+  @@index([assignmentId])
+  @@map("notifications")
+}
+
+model FocusSession {
+  id            String    @id @default(uuid())
+  userId        String
+  duration      Int
+  remainingTime Int
+  targetHours   Float     @default(1.5)
+  status        String    @default("IDLE")
+  startedAt     DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("focus_sessions")
 }
 
 model Transaction {
@@ -126,15 +126,84 @@ model Transaction {
   @@map("transactions")
 }
 
-model recent_activities {
-  id        String   @id
+model RecentActivity {
+  id        String   @id @default(uuid())
   userId    String
   icon      String
   text      String
   type      String
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("recent_activities")
+}
+
+model subjects {
+  id        String   @id
+  name      String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
   users     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([createdAt])
+  @@unique([userId, name])
   @@index([userId])
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  title     String
+  amount    Float
+  type      String
+  category  String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([category])
+  @@index([createdAt])
+  @@map("transactions")
+}
+
+model Note {
+  id         String   @id @default(uuid())
+  title      String   @default("Untitled Note")
+  content    String   @default("")
+  type       String   @default("BLANK")
+  category   String   @default("General")
+  tags       String[] @default([])
+  isPinned   Boolean  @default(false)
+  isFavorite Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([category])
+  @@index([isPinned])
+  @@index([isFavorite])
+  @@index([isArchived])
+  @@map("notes")
+}
+
+model NoteTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  content     String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String? // null = built-in template shared by everyone
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("note_templates")
 }

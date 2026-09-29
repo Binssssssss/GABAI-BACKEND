@@ -1,98 +1,70 @@
-import { prisma } from "@/lib/prisma";
+import {
+  CreateNotificationInput,
+  NotificationResponse,
+} from "@/types/notification.types";
 
-export interface CreateNotificationInput {
-  title: string;
-  message: string;
-  type: string;
-  time: string;
-  icon: string;
-  iconColor: string;
-  taskId?: string;
-  assignmentId?: string;
-}
+import {
+  notificationRepository,
+} from "@/repositories/notification.repository";
 
-export const getNotificationsByUser = async (
-  userId: string
-) => {
-  return prisma.notifications.findMany({
-    where: {
+export const notificationService = {
+  async getNotifications(
+    userId: string,
+  ): Promise<NotificationResponse[]> {
+    const notifications =
+      await notificationRepository.getUserNotifications(
+        userId,
+      );
+
+    return notifications.map((notification) => ({
+      id: notification.id,
+      title: notification.title,
+      message: notification.message,
+      type: notification.type as NotificationResponse["type"],
+      time: notification.time,
+      read: notification.read,
+      icon: notification.icon,
+      iconColor: notification.iconColor,
+      taskId: notification.taskId ?? undefined,
+      assignmentId:
+        notification.assignmentId ?? undefined,
+      createdAt: notification.createdAt,
+    }));
+  },
+
+  async createNotification(
+    userId: string,
+    data: CreateNotificationInput,
+  ) {
+    return notificationRepository.createNotification(
       userId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-};
+      data,
+    );
+  },
 
-export const getNotificationById = async (
-  userId: string,
-  notificationId: string
-) => {
-  return prisma.notifications.findFirst({
-    where: {
-      id: notificationId,
+  async markAsRead(
+    notificationId: string,
+    userId: string,
+  ) {
+    return notificationRepository.markAsRead(
+      notificationId,
       userId,
-    },
-  });
-};
+    );
+  },
 
-export const createNotification = async (
-  userId: string,
-  data: CreateNotificationInput
-) => {
-  return prisma.notifications.create({
-    data: {
-      id: crypto.randomUUID(),
+  async markAllAsRead(userId: string) {
+    return notificationRepository.markAllAsRead(
       userId,
-      title: data.title,
-      message: data.message,
-      type: data.type,
-      time: data.time,
-      icon: data.icon,
-      iconColor: data.iconColor,
-      taskId: data.taskId,
-      assignmentId: data.assignmentId,
-    },
-  });
-};
+    );
+  },
 
-export const markNotificationAsRead = async (
-  userId: string,
-  notificationId: string
-) => {
-  return prisma.notifications.updateMany({
-    where: {
-      id: notificationId,
+  async deleteNotification(
+    notificationId: string,
+    userId: string,
+  ) {
+    return notificationRepository.deleteNotification(
+      notificationId,
       userId,
-    },
-    data: {
-      read: true,
-    },
-  });
-};
-
-export const markAllNotificationsAsRead = async (
-  userId: string
-) => {
-  return prisma.notifications.updateMany({
-    where: {
-      userId,
-      read: false,
-    },
-    data: {
-      read: true,
-    },
-  });
-};
-
-export const deleteNotification = async (
-  userId: string,
-  notificationId: string
-) => {
-  return prisma.notifications.deleteMany({
-    where: {
-      id: notificationId,
-      userId,
-    },
-  });
+    );
+  },
 };
