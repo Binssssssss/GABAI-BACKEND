@@ -14,11 +14,14 @@ model User {
   password          String
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-  focus_sessions    focus_sessions[]
-  notifications     notifications[]
-  recent_activities recent_activities[]
+  FocusSessions     FocusSession[]
+  notifications     Notification[]
+  recent_activities RecentActivity[]
   tasks             Task[]
   subjects          Subject[]
+  transactions      Transaction[]
+  notes             Note[]
+  noteTemplates     NoteTemplate[]
   
   @@map("users")
 }
@@ -140,35 +143,6 @@ model RecentActivity {
   @@map("recent_activities")
 }
 
-model subjects {
-  id        String   @id
-  name      String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-  users     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, name])
-  @@index([userId])
-}
-
-model Transaction {
-  id        String   @id @default(uuid())
-  title     String
-  amount    Float
-  type      String
-  category  String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([type])
-  @@index([category])
-  @@index([createdAt])
-  @@map("transactions")
-}
 
 model Note {
   id         String   @id @default(uuid())

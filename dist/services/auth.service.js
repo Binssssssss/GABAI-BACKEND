@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { userRepository } from "@/repositories/user.repository";
 import { authRepository } from "@/repositories/auth.repository";
 import { AppError } from "@/utils/response";
-import { generateAccessToken, generateRefreshToken } from "@/utils/jwt";
+import { generateAccessToken, generateRefreshToken, } from "@/utils/jwt";
 import { env } from "@/config/env";
 const SALT_ROUNDS = 10;
 export class AuthService {
@@ -48,18 +48,44 @@ export class AuthService {
             },
         };
     }
+    async logout(userId) {
+        /*
+         * GabAi currently uses stateless JWT authentication.
+         *
+         * There is no session or refresh-token table in Prisma yet,
+         * so there is nothing that needs to be deleted from the database.
+         *
+         * The frontend will remove the access token and refresh token
+         * after receiving this successful response.
+         *
+         * userId is intentionally accepted so this method can later be
+         * extended to revoke server-side sessions/tokens if needed.
+         */
+        return {
+            message: "Logged out successfully",
+            userId,
+        };
+    }
     async forgotPassword(email) {
         const user = await authRepository.findUserByEmail(email);
-        // Only generate a token if the user exists, but ALWAYS return the same
-        // generic message so attackers can't discover which emails are registered.
+        /*
+         * Only generate a token if the user exists, but ALWAYS return
+         * the same generic message so attackers can't discover
+         * which emails are registered.
+         */
         if (user) {
-            const resetToken = generateAccessToken({ id: user.id, email: user.email });
-            // TODO: send this by email once an email provider is added.
-            // For now it is logged so you can test the flow during development.
+            const resetToken = generateAccessToken({
+                id: user.id,
+                email: user.email,
+            });
+            // TODO: Send this through an email provider.
+            // Currently logged for development/testing only.
             console.log(`🔑 Password reset link for ${email}:`);
             console.log(`${env.CLIENT_URL}/reset-password?token=${resetToken}`);
         }
-        return { message: "If that email is registered, a reset link has been sent." };
+        return {
+            message: "If that email is registered, a reset link has been sent.",
+        };
     }
 }
 export const authService = new AuthService();

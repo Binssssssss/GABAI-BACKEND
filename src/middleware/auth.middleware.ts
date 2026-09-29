@@ -20,3 +20,5 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     return sendError(res, "Invalid or expired token. Please log in again.", 401);
   }
 }
+
+export default authMiddleware;

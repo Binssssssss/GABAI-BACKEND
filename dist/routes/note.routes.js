@@ -3,9 +3,9 @@ import { createNote, getNotes, getArchivedNotes, getNoteById, updateNote, delete
 import { authMiddleware } from '../middleware/auth.middleware';
 const router = Router();
 router.use(authMiddleware);
-// Get notes
+// Get active notes
 router.get('/', getNotes);
-// Archived notes
+// Get archived notes
 router.get('/archived', getArchivedNotes);
 // Get single note
 router.get('/:id', getNoteById);

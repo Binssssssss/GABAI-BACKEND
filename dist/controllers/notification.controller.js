@@ -1,97 +1,125 @@
-import { notificationService, } from "@/services/notification.service";
-import { sendError, sendSuccess, } from "@/utils/response";
-export class NotificationController {
-    async getNotifications(req, res, next) {
-        try {
-            const userId = req.user?.id;
-            if (!userId) {
-                return sendError(res, "Authentication required. Please log in.", 401);
-            }
-            const notifications = await notificationService.getNotifications(String(userId));
-            return sendSuccess(res, "Notifications retrieved successfully.", notifications);
-        }
-        catch (error) {
-            next(error);
-        }
+import * as notificationService from "@/services/notification.service";
+export const getNotifications = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const notifications = await notificationService.getNotificationsByUser(userId);
+        return res.status(200).json({
+            success: true,
+            data: notifications,
+        });
     }
-    async createNotification(req, res, next) {
-        try {
-            const userId = req.user?.id;
-            if (!userId) {
-                return sendError(res, "Authentication required. Please log in.", 401);
-            }
-            const { title, message, type, time, icon, iconColor, taskId, assignmentId, } = req.body;
-            if (!title ||
-                !message ||
-                !type ||
-                !time ||
-                !icon ||
-                !iconColor) {
-                return sendError(res, "title, message, type, time, icon, and iconColor are required.", 400);
-            }
-            const notification = await notificationService.createNotification(String(userId), {
-                title,
-                message,
-                type,
-                time,
-                icon,
-                iconColor,
-                taskId,
-                assignmentId,
+    catch (error) {
+        console.error("Failed to get notifications:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch notifications.",
+        });
+    }
+};
+export const getNotificationById = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const id = req.params.id;
+        const notification = await notificationService.getNotificationById(userId, id);
+        if (!notification) {
+            return res.status(404).json({
+                success: false,
+                message: "Notification not found.",
             });
-            return sendSuccess(res, "Notification created successfully.", notification);
         }
-        catch (error) {
-            next(error);
-        }
+        return res.status(200).json({
+            success: true,
+            data: notification,
+        });
     }
-    async markAsRead(req, res, next) {
-        try {
-            const userId = req.user?.id;
-            const { id } = req.params;
-            if (!userId) {
-                return sendError(res, "Authentication required. Please log in.", 401);
-            }
-            if (!id) {
-                return sendError(res, "Notification ID is required.", 400);
-            }
-            await notificationService.markAsRead(String(id), String(userId));
-            return sendSuccess(res, "Notification marked as read.", null);
-        }
-        catch (error) {
-            next(error);
-        }
+    catch (error) {
+        console.error("Failed to get notification:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch notification.",
+        });
     }
-    async markAllAsRead(req, res, next) {
-        try {
-            const userId = req.user?.id;
-            if (!userId) {
-                return sendError(res, "Authentication required. Please log in.", 401);
-            }
-            await notificationService.markAllAsRead(String(userId));
-            return sendSuccess(res, "All notifications marked as read.", null);
-        }
-        catch (error) {
-            next(error);
-        }
+};
+export const createNotification = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const notification = await notificationService.createNotification(userId, req.body);
+        return res.status(201).json({
+            success: true,
+            data: notification,
+        });
     }
-    async deleteNotification(req, res, next) {
-        try {
-            const userId = req.user?.id;
-            const { id } = req.params;
-            if (!userId) {
-                return sendError(res, "Authentication required. Please log in.", 401);
-            }
-            if (!id) {
-                return sendError(res, "Notification ID is required.", 400);
-            }
-            await notificationService.deleteNotification(String(id), String(userId));
-            return sendSuccess(res, "Notification deleted successfully.", null);
-        }
-        catch (error) {
-            next(error);
-        }
+    catch (error) {
+        console.error("Failed to create notification:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to create notification.",
+        });
     }
-}
-export const notificationController = new NotificationController();
+};
+export const markNotificationAsRead = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const id = req.params.id;
+        const result = await notificationService.markNotificationAsRead(userId, id);
+        if (result.count === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Notification not found.",
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Notification marked as read.",
+        });
+    }
+    catch (error) {
+        console.error("Failed to mark notification as read:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to mark notification as read.",
+        });
+    }
+};
+export const markAllNotificationsAsRead = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        await notificationService.markAllNotificationsAsRead(userId);
+        return res.status(200).json({
+            success: true,
+            message: "All notifications marked as read.",
+        });
+    }
+    catch (error) {
+        console.error("Failed to mark all notifications as read:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to mark all notifications as read.",
+        });
+    }
+};
+export const deleteNotification = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const id = req.params.id;
+        const result = await notificationService.deleteNotification(userId, id);
+        if (result.count === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Notification not found.",
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Notification deleted.",
+        });
+    }
+    catch (error) {
+        console.error("Failed to delete notification:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to delete notification.",
+        });
+    }
+};
 //# sourceMappingURL=notification.controller.js.map
