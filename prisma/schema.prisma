@@ -19,15 +19,17 @@ model User {
   recent_activities recent_activities[]
   tasks             Task[]
   subjects          Subject[]
-  
+  transactions      Transaction[]
+
   @@map("users")
 }
-model Subject {
-  id        String   @id @default(cuid())
-  name      String
-  userId    String
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Subject {
+  id     String @id @default(cuid())
+  name   String
+  userId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -104,6 +106,24 @@ model notifications {
   @@index([assignmentId])
   @@index([taskId])
   @@index([userId])
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  title     String
+  amount    Float
+  type      String
+  category  String
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([date])
+  @@map("transactions")
 }
 
 model recent_activities {
