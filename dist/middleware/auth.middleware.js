@@ -1,19 +1,20 @@
 import { verifyAccessToken } from "@/utils/jwt";
 import { sendError } from "@/utils/response";
-// Protects routes: requires "Authorization: Bearer <token>" header.
 export function authMiddleware(req, res, next) {
-    const header = req.headers.authorization;
-    console.log('AUTH HEADER RECEIVED:', header);
+    const header = req.get("authorization");
     if (!header || !header.startsWith("Bearer ")) {
         return sendError(res, "Authentication required. Please log in.", 401);
     }
-    try {
-        const payload = verifyAccessToken(header.slice(7));
-        req.user = payload;
-        next();
+    const token = header.slice(7).trim();
+    if (!token) {
+        return sendError(res, "Authentication required. Please log in.", 401);
     }
-    catch (err) {
-        console.log('TOKEN VERIFY FAILED:', err);
+    try {
+        const payload = verifyAccessToken(token);
+        req.user = payload;
+        return next();
+    }
+    catch {
         return sendError(res, "Invalid or expired token. Please log in again.", 401);
     }
 }

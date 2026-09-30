@@ -1,4 +1,7 @@
 import * as noteRepository from '../repositories/note.repository';
+/**
+ * Create Note
+ */
 export const createNote = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -17,6 +20,20 @@ export const createNote = async (req, res) => {
         });
     }
 };
+/**
+ * Get Notes
+ *
+ * Supports:
+ * ?tab=all
+ * ?tab=pinned
+ * ?tab=favorites
+ * ?tab=archived
+ * ?category=School
+ * ?tag=exam
+ * ?search=math
+ * ?sortBy=updated
+ * ?sortOrder=desc
+ */
 export const getNotes = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -39,14 +56,15 @@ export const getNotes = async (req, res) => {
             req.query.sortOrder === 'desc'
             ? req.query.sortOrder
             : undefined;
-        const result = await noteRepository.getNotes(userId, {
+        const filters = {
             tab: tab,
             category,
             tag,
             search,
             sortBy: sortBy,
             sortOrder,
-        });
+        };
+        const result = await noteRepository.getNotes(userId, filters);
         return res.status(200).json({
             success: true,
             data: result.notes,
@@ -61,6 +79,9 @@ export const getNotes = async (req, res) => {
         });
     }
 };
+/**
+ * Get Archived Notes
+ */
 export const getArchivedNotes = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -79,6 +100,9 @@ export const getArchivedNotes = async (req, res) => {
         });
     }
 };
+/**
+ * Get Note By ID
+ */
 export const getNoteById = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -103,6 +127,19 @@ export const getNoteById = async (req, res) => {
         });
     }
 };
+/**
+ * Update Note
+ *
+ * Supports:
+ * title
+ * content
+ * category
+ * tags
+ * type
+ * isPinned
+ * isFavorite
+ * isArchived
+ */
 export const updateNote = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -128,6 +165,9 @@ export const updateNote = async (req, res) => {
         });
     }
 };
+/**
+ * Delete Note
+ */
 export const deleteNote = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -152,6 +192,9 @@ export const deleteNote = async (req, res) => {
         });
     }
 };
+/**
+ * Toggle Pin / Unpin
+ */
 export const togglePin = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -182,6 +225,9 @@ export const togglePin = async (req, res) => {
         });
     }
 };
+/**
+ * Toggle Favorite / Unfavorite
+ */
 export const toggleFavorite = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -212,6 +258,9 @@ export const toggleFavorite = async (req, res) => {
         });
     }
 };
+/**
+ * Archive Note
+ */
 export const archiveNote = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -239,6 +288,9 @@ export const archiveNote = async (req, res) => {
         });
     }
 };
+/**
+ * Unarchive Note
+ */
 export const unarchiveNote = async (req, res) => {
     try {
         const userId = req.user.id;

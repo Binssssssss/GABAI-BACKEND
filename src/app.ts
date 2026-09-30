@@ -8,7 +8,9 @@ import { notFoundMiddleware } from "@/middleware/notFound.middleware";
 
 const app: Application = express();
 
-app.use(cors());
+app.use((req, res, next) => {
+  cors()(req as any, res as any, next);
+});
 
 app.use(express.json());
 
