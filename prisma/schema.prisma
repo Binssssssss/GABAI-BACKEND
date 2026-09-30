@@ -80,17 +80,22 @@ model Notification {
 }
 
 model FocusSession {
-  id            String    @id @default(uuid())
+  id            String   @id @default(uuid())
   userId        String
   duration      Int
   remainingTime Int
-  targetHours   Float     @default(1.5)
-  status        String    @default("IDLE")
+  targetHours   Float    @default(1.5)
+  status        String   @default("IDLE")
+  ambientSound  String   @default("NONE")
+  isStrict      Boolean  @default(false)
+  subject       String?
+  focusMode     String?
   startedAt     DateTime?
   endedAt       DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
