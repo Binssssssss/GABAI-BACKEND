@@ -24,6 +24,24 @@ const loginSchema = z.object({
 });
 router.post("/login", validate(loginSchema), authController.login);
 /**
+ * GOOGLE LOGIN
+ *
+ * The frontend sends a Firebase ID token.
+ *
+ * POST /api/auth/google
+ *
+ * Body:
+ * {
+ *   "idToken": "Firebase ID token"
+ * }
+ */
+const googleLoginSchema = z.object({
+    idToken: z
+        .string()
+        .min(1, "Firebase ID token is required"),
+});
+router.post("/google", validate(googleLoginSchema), authController.googleLogin);
+/**
  * LOGOUT
  *
  * Requires a valid access token:

@@ -8,6 +8,10 @@ export const login = asyncHandler(async (req, res) => {
     const result = await authService.login(req.body);
     return res.status(200).json(result);
 });
+export const googleLogin = asyncHandler(async (req, res) => {
+    const result = await authService.googleLogin(req.body.idToken);
+    return res.status(200).json(result);
+}); 
 export const logout = asyncHandler(async (req, res) => {
     const result = await authService.logout(req.user.id);
     return res.status(200).json(result);

@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
+import { randomUUID } from "node:crypto";
 import { env } from "@/config/env";
+import { firebaseAdminAuth } from "@/config/firebase-admin";
 import { authRepository } from "@/repositories/auth.repository";
 import { userRepository } from "@/repositories/user.repository";
 import { AppError } from "@/utils/response";
@@ -60,10 +62,6 @@ export class AuthService {
      *
      * The frontend is responsible for removing the
      * access token and refresh token from AsyncStorage.
-     *
-     * The userId is kept here so this service can later
-     * support server-side token/session revocation if
-     * that feature is added.
      */
     async logout(userId) {
         return {
@@ -92,6 +90,92 @@ export class AuthService {
         }
         return {
             message: "If that email is registered, a reset link has been sent.",
+        };
+    }
+    /**
+     * Google / Firebase Login
+     *
+     * Flow:
+     * Google Sign-In
+     *      ↓
+     * Firebase ID Token
+     *      ↓
+     * Firebase Admin verifies token
+     *      ↓
+     * Find/Create GabAi user
+     *      ↓
+     * Generate GabAi JWT
+     */
+    async googleLogin(idToken) {
+        if (!idToken) {
+            throw new AppError("Firebase ID token is required", 400);
+        }
+        let decodedToken;
+        try {
+            decodedToken =
+                await firebaseAdminAuth.verifyIdToken(idToken);
+        }
+        catch {
+            throw new AppError("Invalid or expired Firebase token", 401);
+        }
+        const firebaseUid = decodedToken.uid;
+        const email = decodedToken.email;
+        if (!email) {
+            throw new AppError("Google account email is required", 400);
+        }
+        const fullName = decodedToken.name ||
+            email.split("@")[0];
+        /*
+         * First, try to find the user through Firebase UID.
+         */
+        let user = await userRepository.findByFirebaseUid(firebaseUid);
+        /*
+         * If no Firebase UID is linked yet,
+         * check whether the email already exists.
+         */
+        if (!user) {
+            user = await userRepository.findByEmail(email);
+        }
+        /*
+         * Create a new GabAi account if the user
+         * does not exist yet.
+         */
+        if (!user) {
+            const randomPassword = await bcrypt.hash(randomUUID(), SALT_ROUNDS);
+            user = await userRepository.create({
+                fullName,
+                email,
+                password: randomPassword,
+                firebaseUid,
+            });
+        }
+        /*
+         * Existing email/password account:
+         * link the Firebase UID to the existing account.
+         */
+        else if (!user.firebaseUid) {
+            user = await userRepository.update(user.id, {
+                firebaseUid,
+            });
+        }
+        /*
+         * Generate the same GabAi JWT tokens
+         * used by normal email/password login.
+         */
+        const tokenPayload = {
+            id: user.id,
+            email: user.email,
+        };
+        const token = generateAccessToken(tokenPayload);
+        const refreshToken = generateRefreshToken(tokenPayload);
+        return {
+            token,
+            refreshToken,
+            user: {
+                id: user.id,
+                fullName: user.fullName,
+                email: user.email,
+            },
         };
     }
 }

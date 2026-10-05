@@ -8,6 +8,11 @@ export class UserRepository {
             where: { email },
         });
     }
+    async findByFirebaseUid(firebaseUid) {
+        return prisma.user.findUnique({
+            where: { firebaseUid },
+        });
+    }
     async findById(id) {
         return prisma.user.findUnique({
             where: { id },

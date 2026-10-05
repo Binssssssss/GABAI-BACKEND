@@ -19,6 +19,16 @@ export const login = asyncHandler(
   },
 );
 
+export const googleLogin = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await authService.googleLogin(
+      req.body.idToken,
+    );
+
+    return res.status(200).json(result);
+  },
+);
+
 export const logout = asyncHandler(
   async (req: Request, res: Response) => {
     const result = await authService.logout(req.user.id);
@@ -36,3 +46,4 @@ export const forgotPassword = asyncHandler(
     return res.status(200).json(result);
   },
 );
+
