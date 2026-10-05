@@ -8,22 +8,36 @@ datasource db {
 }
 
 model User {
-  id               String           @id @default(uuid())
-  fullName         String
-  email            String           @unique
-  password         String
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  focusSessions    FocusSession[]
-  notifications    Notification[]
-  recentActivities RecentActivity[]
-  subjects         subjects[]
-  tasks            Task[]
-  transactions     Transaction[]
-  notes            Note[]
-  noteTemplates    NoteTemplate[]
-
+  id                String              @id @default(cuid())
+  fullName          String
+  email             String              @unique
+  password          String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  FocusSessions     FocusSession[]
+  notifications     Notification[]
+  recent_activities RecentActivity[]
+  tasks             Task[]
+  subjects          Subject[]
+  transactions      Transaction[]
+  notes             Note[]
+  noteTemplates     NoteTemplate[]
+  
   @@map("users")
+}
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("subjects")
 }
 
 model Task {
@@ -102,6 +116,24 @@ model FocusSession {
   @@map("focus_sessions")
 }
 
+model Transaction {
+  id        String   @id @default(cuid())
+  title     String
+  amount    Float
+  type      String
+  category  String
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([date])
+  @@map("transactions")
+}
+
 model RecentActivity {
   id        String   @id @default(uuid())
   userId    String
@@ -116,35 +148,6 @@ model RecentActivity {
   @@map("recent_activities")
 }
 
-model subjects {
-  id        String   @id
-  name      String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-  users     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, name])
-  @@index([userId])
-}
-
-model Transaction {
-  id        String   @id @default(uuid())
-  title     String
-  amount    Float
-  type      String
-  category  String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([type])
-  @@index([category])
-  @@index([createdAt])
-  @@map("transactions")
-}
 
 model Note {
   id         String   @id @default(uuid())

@@ -1,11 +1,19 @@
 import { Router } from "express";
-import { notificationController, } from "@/controllers/notification.controller";
-import { authMiddleware, } from "@/middleware/auth.middleware";
+import * as notificationController from "@/controllers/notification.controller";
+import { authMiddleware } from "@/middleware/auth.middleware";
 const router = Router();
-router.get("/", authMiddleware, notificationController.getNotifications);
-router.post("/", authMiddleware, notificationController.createNotification);
-router.patch("/read-all", authMiddleware, notificationController.markAllAsRead);
-router.patch("/:id/read", authMiddleware, notificationController.markAsRead);
-router.delete("/:id", authMiddleware, notificationController.deleteNotification);
+router.get("/test", (_req, res) => {
+    res.json({
+        success: true,
+        message: "Notification route is working",
+    });
+});
+router.use(authMiddleware);
+router.get("/", notificationController.getNotifications);
+router.get("/:id", notificationController.getNotificationById);
+router.post("/", notificationController.createNotification);
+router.patch("/read-all", notificationController.markAllNotificationsAsRead);
+router.patch("/:id/read", notificationController.markNotificationAsRead);
+router.delete("/:id", notificationController.deleteNotification);
 export default router;
 //# sourceMappingURL=notification.routes.js.map

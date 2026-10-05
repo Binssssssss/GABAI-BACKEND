@@ -17,6 +17,7 @@ const router = Router();
 
 
 
+router.use("/academic-pressure", academicPressureRoutes);
 router.use("/auth", authRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/notifications", notificationRoutes);

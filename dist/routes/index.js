@@ -13,6 +13,7 @@ import transactionRoutes from "./transaction.routes";
 import noteRoutes from './note.routes';
 import assistantRoutes from './assistant.routes';
 const router = Router();
+router.use("/academic-pressure", academicPressureRoutes);
 router.use("/auth", authRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/notifications", notificationRoutes);
