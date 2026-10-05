@@ -18,4 +18,5 @@ export function authMiddleware(req, res, next) {
         return sendError(res, "Invalid or expired token. Please log in again.", 401);
     }
 }
+export default authMiddleware;
 //# sourceMappingURL=auth.middleware.js.map

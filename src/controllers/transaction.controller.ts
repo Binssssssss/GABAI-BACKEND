@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import {
   createTransaction as createTransactionService,
   getTransactions as getTransactionsService,
@@ -22,7 +23,10 @@ export async function createTransaction(
       });
     }
 
-    const transaction = await createTransactionService(userId, req.body);
+    const transaction = await createTransactionService(
+      userId,
+      req.body
+    );
 
     return res.status(201).json({
       success: true,
@@ -30,14 +34,14 @@ export async function createTransaction(
       data: transaction,
     });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to create transaction";
+    console.error("CREATE TRANSACTION ERROR:", error);
 
     return res.status(400).json({
       success: false,
-      message,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to create transaction",
     });
   }
 }
@@ -49,6 +53,8 @@ export async function getTransactions(
   try {
     const userId = req.user?.id;
 
+    console.log("GET TRANSACTIONS USER ID:", userId);
+
     if (!userId) {
       return res.status(401).json({
         success: false,
@@ -56,7 +62,13 @@ export async function getTransactions(
       });
     }
 
-    const transactions = await getTransactionsService(userId);
+    const transactions =
+      await getTransactionsService(userId);
+
+    console.log(
+      "GET TRANSACTIONS RESULT:",
+      transactions
+    );
 
     return res.status(200).json({
       success: true,
@@ -64,9 +76,14 @@ export async function getTransactions(
       data: transactions,
     });
   } catch (error) {
+    console.error("GET TRANSACTIONS ERROR:", error);
+
     return res.status(500).json({
       success: false,
-      message: "Failed to retrieve transactions",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to retrieve transactions",
     });
   }
 }
@@ -95,14 +112,14 @@ export async function getTransaction(
       data: transaction,
     });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Transaction not found";
+    console.error("GET TRANSACTION ERROR:", error);
 
     return res.status(404).json({
       success: false,
-      message,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Transaction not found",
     });
   }
 }
@@ -121,11 +138,12 @@ export async function updateTransaction(
       });
     }
 
-    const transaction = await updateTransactionService(
-      String(req.params.id),
-      userId,
-      req.body
-    );
+    const transaction =
+      await updateTransactionService(
+        String(req.params.id),
+        userId,
+        req.body
+      );
 
     return res.status(200).json({
       success: true,
@@ -133,14 +151,14 @@ export async function updateTransaction(
       data: transaction,
     });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to update transaction";
+    console.error("UPDATE TRANSACTION ERROR:", error);
 
     return res.status(400).json({
       success: false,
-      message,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to update transaction",
     });
   }
 }
@@ -159,21 +177,24 @@ export async function deleteTransaction(
       });
     }
 
-    await deleteTransactionService(String(req.params.id), userId);
+    await deleteTransactionService(
+      String(req.params.id),
+      userId
+    );
 
     return res.status(200).json({
       success: true,
       message: "Transaction deleted successfully",
     });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to delete transaction";
+    console.error("DELETE TRANSACTION ERROR:", error);
 
     return res.status(404).json({
       success: false,
-      message,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to delete transaction",
     });
   }
 }
@@ -192,7 +213,8 @@ export async function getWalletBalance(
       });
     }
 
-    const balance = await getWalletBalanceService(userId);
+    const balance =
+      await getWalletBalanceService(userId);
 
     return res.status(200).json({
       success: true,
@@ -200,9 +222,14 @@ export async function getWalletBalance(
       data: balance,
     });
   } catch (error) {
+    console.error("GET WALLET BALANCE ERROR:", error);
+
     return res.status(500).json({
       success: false,
-      message: "Failed to retrieve wallet balance",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to retrieve wallet balance",
     });
   }
 }

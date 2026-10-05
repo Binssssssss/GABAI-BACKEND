@@ -12,6 +12,18 @@ export const notificationRepository = {
     });
   },
 
+  async getNotificationById(
+    notificationId: string,
+    userId: string,
+  ) {
+    return prisma.notification.findFirst({
+      where: {
+        id: notificationId,
+        userId,
+      },
+    });
+  },
+
   async createNotification(
     userId: string,
     data: {
