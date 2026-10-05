@@ -1,49 +1,67 @@
 import { Router } from "express";
-
-import {
-  focusSessionController,
-} from "@/controllers/focus-session.controller";
-
-import {
-  authMiddleware,
-} from "@/middleware/auth.middleware";
+import { authMiddleware } from "../middleware/auth.middleware";
+import { focusSessionController } from "../controllers/focus-session.controller";
 
 const router = Router();
 
 router.get(
+  "/stats",
+  authMiddleware,
+  focusSessionController.getFocusStats
+);
+
+router.get(
+  "/history",
+  authMiddleware,
+  focusSessionController.getSessionHistory
+);
+
+router.get(
   "/current",
   authMiddleware,
-  focusSessionController.getCurrentSession,
+  focusSessionController.getCurrentSession
 );
 
 router.post(
   "/start",
   authMiddleware,
-  focusSessionController.startSession,
+  focusSessionController.startSession
+);
+
+router.patch(
+  "/:id/strict",
+  authMiddleware,
+  focusSessionController.updateStrictMode
+);
+
+router.patch(
+  "/:id",
+  authMiddleware,
+  focusSessionController.updateAmbientSound
 );
 
 router.patch(
   "/:id/pause",
   authMiddleware,
-  focusSessionController.pauseSession,
+  focusSessionController.pauseSession
 );
 
 router.patch(
   "/:id/resume",
   authMiddleware,
-  focusSessionController.resumeSession,
+  focusSessionController.resumeSession
 );
 
 router.patch(
   "/:id/complete",
   authMiddleware,
-  focusSessionController.completeSession,
+  focusSessionController.completeSession
 );
 
 router.patch(
   "/:id/cancel",
   authMiddleware,
-  focusSessionController.cancelSession,
+  focusSessionController.cancelSession
 );
 
 export default router;

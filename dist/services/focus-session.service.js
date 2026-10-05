@@ -1,96 +1,324 @@
-import { focusSessionRepository, } from "../repositories/focus-session.repository";
-export const focusSessionService = {
+import { focusSessionRepository } from "../repositories/focus-session.repository";
+const MANILA_TIME_ZONE = "Asia/Manila";
+class FocusSessionService {
+    /**
+     * Get the user's currently active focus session.
+     */
     async getCurrentSession(userId) {
         const session = await focusSessionRepository.getActiveSession(userId);
         if (!session) {
             return null;
         }
-        return toFocusSessionResponse(session);
-    },
+        return this.toFocusSessionResponse(session);
+    }
+    /**
+     * Get focus statistics.
+     */
+    async getFocusStats(userId) {
+        const { start, end } = this.getTodayRange();
+        const todaySessions = await focusSessionRepository.getCompletedSessionsInRange(userId, start, end);
+        const allCompletedSessions = await focusSessionRepository.getAllCompletedSessions(userId);
+        const todayMinutes = todaySessions.reduce((total, session) => {
+            return total + Math.round(session.duration / 60);
+        }, 0);
+        const todaySessionsCount = todaySessions.length;
+        const totalMinutes = allCompletedSessions.reduce((total, session) => {
+            return total + Math.round(session.duration / 60);
+        }, 0);
+        const totalHours = Number((totalMinutes / 60).toFixed(1));
+        const streakDays = this.calculateStreak(allCompletedSessions);
+        return {
+            todayMinutes,
+            todaySessions: todaySessionsCount,
+            streakDays,
+            totalHours,
+        };
+    }
+    /**
+     * Get completed focus session history.
+     */
+    async getSessionHistory(userId, limit = 50, offset = 0) {
+        const sessions = await focusSessionRepository.getCompletedSessionHistory(userId, limit, offset);
+        return sessions
+            .filter((session) => session.endedAt !== null)
+            .map((session) => {
+            return {
+                id: session.id,
+                subject: session.subject?.trim() || "General Study",
+                durationMinutes: Math.round(session.duration / 60),
+                mode: this.normalizeFocusMode(session.focusMode || "custom"),
+                completedAt: session.endedAt.toISOString(),
+                isStrict: session.isStrict,
+            };
+        });
+    }
+    /**
+     * Start a new focus session.
+     */
     async startSession(userId, input) {
-        const existingSession = await focusSessionRepository.getActiveSession(userId);
-        if (existingSession) {
-            return toFocusSessionResponse(existingSession);
+        const activeSession = await focusSessionRepository.getActiveSession(userId);
+        if (activeSession) {
+            throw new Error("You already have an active focus session.");
         }
         const duration = input.duration ?? 25 * 60;
         const targetHours = input.targetHours ?? 1.5;
-        if (duration <= 0) {
-            throw new Error("Focus session duration must be greater than zero.");
+        const ambientSound = this.normalizeAmbientSound(input.ambientSound ?? "none");
+        const isStrict = input.isStrict ?? false;
+        const subject = input.subject?.trim() || null;
+        const focusMode = this.normalizeFocusMode(input.focusMode ?? "pomodoro");
+        if (!Number.isInteger(duration) ||
+            duration <= 0) {
+            throw new Error("Duration must be a positive number of seconds.");
         }
-        if (targetHours <= 0) {
+        if (typeof targetHours !== "number" ||
+            targetHours <= 0) {
             throw new Error("Target hours must be greater than zero.");
         }
-        const session = await focusSessionRepository.createSession(userId, duration, targetHours);
-        return toFocusSessionResponse(session);
-    },
-    async pauseSession(userId, sessionId, remainingTime) {
-        const session = await focusSessionRepository.getSessionById(sessionId, userId);
-        if (!session) {
-            throw new Error("Focus session not found.");
+        if (subject !== null &&
+            subject.length > 200) {
+            throw new Error("Subject must not exceed 200 characters.");
         }
-        if (remainingTime < 0) {
-            throw new Error("Remaining time cannot be negative.");
+        const session = await focusSessionRepository.createSession(userId, duration, targetHours, ambientSound, isStrict, subject ?? undefined, focusMode);
+        const createdSession = await focusSessionRepository.getSessionById(session.id, userId);
+        if (!createdSession) {
+            throw new Error("Failed to retrieve the newly created focus session.");
+        }
+        return this.toFocusSessionResponse(createdSession);
+    }
+    /**
+     * Update ambient sound.
+     */
+    async updateAmbientSound(userId, sessionId, ambientSound) {
+        const session = await this.getOwnedSession(userId, sessionId);
+        if (session.status !== "RUNNING" &&
+            session.status !== "PAUSED") {
+            throw new Error("Ambient sound can only be changed for an active session.");
+        }
+        const normalized = this.normalizeAmbientSound(ambientSound);
+        await focusSessionRepository.updateSession(sessionId, userId, {
+            ambientSound: normalized,
+        });
+        const updatedSession = await this.getOwnedSession(userId, sessionId);
+        return this.toFocusSessionResponse(updatedSession);
+    }
+    /**
+     * Enable or disable strict mode.
+     */
+    async updateStrictMode(userId, sessionId, isStrict) {
+        const session = await this.getOwnedSession(userId, sessionId);
+        if (session.status !== "RUNNING" &&
+            session.status !== "PAUSED") {
+            throw new Error("Strict mode can only be changed for an active session.");
+        }
+        if (typeof isStrict !== "boolean") {
+            throw new Error("isStrict must be a boolean value.");
         }
         await focusSessionRepository.updateSession(sessionId, userId, {
-            remainingTime,
+            isStrict,
+        });
+        const updatedSession = await this.getOwnedSession(userId, sessionId);
+        return this.toFocusSessionResponse(updatedSession);
+    }
+    /**
+     * Pause a running session.
+     */
+    async pauseSession(userId, sessionId, remainingTime) {
+        const session = await this.getOwnedSession(userId, sessionId);
+        if (session.status !== "RUNNING") {
+            throw new Error("Only a running focus session can be paused.");
+        }
+        const newRemainingTime = remainingTime !== undefined
+            ? remainingTime
+            : session.remainingTime;
+        if (!Number.isInteger(newRemainingTime) ||
+            newRemainingTime < 0 ||
+            newRemainingTime > session.duration) {
+            throw new Error("Invalid remaining time.");
+        }
+        await focusSessionRepository.updateSession(sessionId, userId, {
+            remainingTime: newRemainingTime,
             status: "PAUSED",
         });
-        return focusSessionRepository.getSessionById(sessionId, userId);
-    },
+        const updatedSession = await this.getOwnedSession(userId, sessionId);
+        return this.toFocusSessionResponse(updatedSession);
+    }
+    /**
+     * Resume a paused session.
+     */
     async resumeSession(userId, sessionId) {
-        const session = await focusSessionRepository.getSessionById(sessionId, userId);
-        if (!session) {
-            throw new Error("Focus session not found.");
+        const session = await this.getOwnedSession(userId, sessionId);
+        if (session.status !== "PAUSED") {
+            throw new Error("Only a paused focus session can be resumed.");
         }
         await focusSessionRepository.updateSession(sessionId, userId, {
             status: "RUNNING",
         });
-        return focusSessionRepository.getSessionById(sessionId, userId);
-    },
+        const updatedSession = await this.getOwnedSession(userId, sessionId);
+        return this.toFocusSessionResponse(updatedSession);
+    }
+    /**
+     * Complete a focus session.
+     */
     async completeSession(userId, sessionId) {
-        const session = await focusSessionRepository.getSessionById(sessionId, userId);
-        if (!session) {
-            throw new Error("Focus session not found.");
+        const session = await this.getOwnedSession(userId, sessionId);
+        if (session.status !== "RUNNING" &&
+            session.status !== "PAUSED") {
+            throw new Error("Only an active focus session can be completed.");
         }
         await focusSessionRepository.updateSession(sessionId, userId, {
             remainingTime: 0,
             status: "COMPLETED",
             endedAt: new Date(),
         });
-        return focusSessionRepository.getSessionById(sessionId, userId);
-    },
+        const updatedSession = await this.getOwnedSession(userId, sessionId);
+        return this.toFocusSessionResponse(updatedSession);
+    }
+    /**
+     * Cancel a focus session.
+     */
     async cancelSession(userId, sessionId) {
-        const session = await focusSessionRepository.getSessionById(sessionId, userId);
-        if (!session) {
-            throw new Error("Focus session not found.");
+        const session = await this.getOwnedSession(userId, sessionId);
+        if (session.status !== "RUNNING" &&
+            session.status !== "PAUSED") {
+            throw new Error("Only an active focus session can be cancelled.");
         }
         await focusSessionRepository.updateSession(sessionId, userId, {
             status: "CANCELLED",
             endedAt: new Date(),
         });
-        return focusSessionRepository.getSessionById(sessionId, userId);
-    },
-};
-function toFocusSessionResponse(session) {
-    const statuses = [
-        "IDLE",
-        "RUNNING",
-        "PAUSED",
-        "COMPLETED",
-        "CANCELLED",
-    ];
-    if (!statuses.includes(session.status)) {
-        throw new Error(`Invalid focus session status: ${session.status}`);
+        const updatedSession = await this.getOwnedSession(userId, sessionId);
+        return this.toFocusSessionResponse(updatedSession);
     }
-    return {
-        id: session.id,
-        duration: session.duration,
-        remainingTime: session.remainingTime,
-        targetHours: session.targetHours,
-        status: session.status,
-        startedAt: session.startedAt,
-        endedAt: session.endedAt,
-        createdAt: session.createdAt,
-    };
+    /**
+     * Retrieve a session owned by the current user.
+     */
+    async getOwnedSession(userId, sessionId) {
+        const session = await focusSessionRepository.getSessionById(sessionId, userId);
+        if (!session) {
+            throw new Error("Focus session not found.");
+        }
+        return session;
+    }
+    /**
+     * Convert Prisma FocusSession into API response.
+     */
+    toFocusSessionResponse(session) {
+        return {
+            id: session.id,
+            duration: session.duration,
+            remainingTime: session.remainingTime,
+            targetHours: session.targetHours,
+            status: session.status,
+            ambientSound: this.normalizeAmbientSound(session.ambientSound),
+            isStrict: session.isStrict,
+            subject: session.subject ?? null,
+            focusMode: session.focusMode ?? null,
+            startedAt: session.startedAt ?? null,
+            endedAt: session.endedAt ?? null,
+            createdAt: session.createdAt,
+        };
+    }
+    /**
+     * Normalize frontend/backend ambient sound values.
+     */
+    normalizeAmbientSound(value) {
+        const normalized = value.trim().toLowerCase();
+        const mapping = {
+            none: "NONE",
+            rain: "RAIN",
+            library: "LIBRARY",
+            cafe: "CAFE",
+            waves: "WAVES",
+            whitenoise: "WHITENOISE",
+            // Backward compatibility
+            forest: "LIBRARY",
+            ocean: "WAVES",
+            fireplace: "WHITENOISE",
+        };
+        const result = mapping[normalized];
+        if (!result) {
+            throw new Error(`Invalid ambient sound: ${value}`);
+        }
+        return result;
+    }
+    /**
+     * Validate and normalize focus mode.
+     */
+    normalizeFocusMode(value) {
+        const normalized = value.trim();
+        const validModes = [
+            "pomodoro",
+            "deepWork",
+            "shortBreak",
+            "longBreak",
+            "custom",
+        ];
+        if (validModes.includes(normalized)) {
+            return normalized;
+        }
+        throw new Error(`Invalid focus mode: ${value}`);
+    }
+    /**
+     * Get today's date range in Asia/Manila.
+     */
+    getTodayRange() {
+        const todayKey = new Date().toLocaleDateString("en-CA", {
+            timeZone: MANILA_TIME_ZONE,
+        });
+        const start = new Date(`${todayKey}T00:00:00+08:00`);
+        const end = new Date(`${todayKey}T23:59:59.999+08:00`);
+        return {
+            start,
+            end,
+        };
+    }
+    /**
+     * Calculate consecutive completed-session days.
+     */
+    calculateStreak(sessions) {
+        const completedDates = new Set();
+        for (const session of sessions) {
+            if (!session.endedAt) {
+                continue;
+            }
+            const dateKey = session.endedAt.toLocaleDateString("en-CA", {
+                timeZone: MANILA_TIME_ZONE,
+            });
+            completedDates.add(dateKey);
+        }
+        if (completedDates.size === 0) {
+            return 0;
+        }
+        const todayKey = new Date().toLocaleDateString("en-CA", {
+            timeZone: MANILA_TIME_ZONE,
+        });
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayKey = yesterday.toLocaleDateString("en-CA", {
+            timeZone: MANILA_TIME_ZONE,
+        });
+        let currentKey;
+        if (completedDates.has(todayKey)) {
+            currentKey = todayKey;
+        }
+        else if (completedDates.has(yesterdayKey)) {
+            currentKey = yesterdayKey;
+        }
+        else {
+            return 0;
+        }
+        let streak = 0;
+        while (completedDates.has(currentKey)) {
+            streak++;
+            const currentDate = new Date(`${currentKey}T00:00:00+08:00`);
+            currentDate.setDate(currentDate.getDate() - 1);
+            currentKey =
+                currentDate.toLocaleDateString("en-CA", {
+                    timeZone: MANILA_TIME_ZONE,
+                });
+        }
+        return streak;
+    }
 }
+export const focusSessionService = new FocusSessionService();
 //# sourceMappingURL=focus-session.service.js.map

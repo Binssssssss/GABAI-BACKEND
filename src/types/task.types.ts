@@ -53,6 +53,10 @@ export interface TaskFilters {
   search?: string;
   category?: string;
   date?: string;
+   filter?: string;
+  completed?: boolean;
+  subject?: string;
+  priority?: string;
 }
 
 export interface CalendarEvent {
@@ -87,4 +91,12 @@ export interface ConvertNoteToTaskInput {
   dueTime?: string;
   hasReminder?: boolean;
   repeat?: string;
+}
+export interface BulkTaskInput {
+  taskIds: string[];
+}
+
+export interface BulkTaskResponse {
+  count: number;
+  message: string;
 }

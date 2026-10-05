@@ -1,23 +1,14 @@
-import {
-  NextFunction,
-  Request,
-  Response,
-} from "express";
+import { Request, Response } from "express";
+import { focusSessionService } from "../services/focus-session.service";
+import { sendError, sendSuccess } from "../utils/response";
 
-import {
-  focusSessionService,
-} from "@/services/focus-session.service";
-
-import {
-  sendError,
-  sendSuccess,
-} from "@/utils/response";
-
-export class FocusSessionController {
+class FocusSessionController {
+  /**
+   * GET /api/focus-sessions/current
+   */
   async getCurrentSession(
     req: Request,
-    res: Response,
-    next: NextFunction,
+    res: Response
   ) {
     try {
       const userId = req.user?.id;
@@ -25,30 +16,43 @@ export class FocusSessionController {
       if (!userId) {
         return sendError(
           res,
-          "Authentication required. Please log in.",
-          401,
+          "Unauthorized",
+          401
         );
       }
 
       const session =
         await focusSessionService.getCurrentSession(
-          String(userId),
+          userId
         );
 
       return sendSuccess(
         res,
-        "Focus session retrieved successfully.",
-        session,
+        "Current focus session retrieved successfully.",
+        session
       );
     } catch (error) {
-      next(error);
+      console.error(
+        "Get current focus session error:",
+        error
+      );
+
+      return sendError(
+        res,
+        error instanceof Error
+          ? error.message
+          : "Failed to retrieve current focus session.",
+        500
+      );
     }
   }
 
-  async startSession(
+  /**
+   * GET /api/focus-sessions/stats
+   */
+  async getFocusStats(
     req: Request,
-    res: Response,
-    next: NextFunction,
+    res: Response
   ) {
     try {
       const userId = req.user?.id;
@@ -56,50 +60,183 @@ export class FocusSessionController {
       if (!userId) {
         return sendError(
           res,
-          "Authentication required. Please log in.",
-          401,
+          "Unauthorized",
+          401
+        );
+      }
+
+      const stats =
+        await focusSessionService.getFocusStats(
+          userId
+        );
+
+      return sendSuccess(
+        res,
+        "Focus statistics retrieved successfully.",
+        stats
+      );
+    } catch (error) {
+      console.error(
+        "Get focus stats error:",
+        error
+      );
+
+      return sendError(
+        res,
+        error instanceof Error
+          ? error.message
+          : "Failed to retrieve focus statistics.",
+        500
+      );
+    }
+  }
+
+  /**
+   * GET /api/focus-sessions/history
+   */
+  async getSessionHistory(
+    req: Request,
+    res: Response
+  ) {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return sendError(
+          res,
+          "Unauthorized",
+          401
+        );
+      }
+
+      const limitParam =
+        Number(req.query.limit);
+
+      const offsetParam =
+        Number(req.query.offset);
+
+      const limit =
+        Number.isFinite(limitParam) &&
+        limitParam > 0
+          ? Math.min(
+              Math.floor(limitParam),
+              100
+            )
+          : 50;
+
+      const offset =
+        Number.isFinite(offsetParam) &&
+        offsetParam >= 0
+          ? Math.floor(offsetParam)
+          : 0;
+
+      const history =
+        await focusSessionService.getSessionHistory(
+          userId,
+          limit,
+          offset
+        );
+
+      return sendSuccess(
+        res,
+        "Focus session history retrieved successfully.",
+        history
+      );
+    } catch (error) {
+      console.error(
+        "Get focus session history error:",
+        error
+      );
+
+      return sendError(
+        res,
+        error instanceof Error
+          ? error.message
+          : "Failed to retrieve focus session history.",
+        500
+      );
+    }
+  }
+
+  /**
+   * POST /api/focus-sessions/start
+   */
+  async startSession(
+    req: Request,
+    res: Response
+  ) {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return sendError(
+          res,
+          "Unauthorized",
+          401
         );
       }
 
       const {
         duration,
         targetHours,
+        ambientSound,
+        isStrict,
+        subject,
+        focusMode,
       } = req.body;
 
       const session =
         await focusSessionService.startSession(
-          String(userId),
+          userId,
           {
             duration,
             targetHours,
-          },
+            ambientSound,
+            isStrict,
+            subject,
+            focusMode,
+          }
         );
 
       return sendSuccess(
         res,
         "Focus session started successfully.",
         session,
+        201
       );
     } catch (error) {
-      next(error);
+      console.error(
+        "Start focus session error:",
+        error
+      );
+
+      return sendError(
+        res,
+        error instanceof Error
+          ? error.message
+          : "Failed to start focus session.",
+        400
+      );
     }
   }
 
-  async pauseSession(
+  /**
+   * PATCH /api/focus-sessions/:id
+   */
+  async updateAmbientSound(
     req: Request,
-    res: Response,
-    next: NextFunction,
+    res: Response
   ) {
     try {
       const userId = req.user?.id;
-      const { id } = req.params;
-      const { remainingTime } = req.body;
+      const id = getParamString(req.params.id);
+      const { ambientSound } = req.body;
 
       if (!userId) {
         return sendError(
           res,
-          "Authentication required. Please log in.",
-          401,
+          "Unauthorized",
+          401
         );
       }
 
@@ -107,135 +244,339 @@ export class FocusSessionController {
         return sendError(
           res,
           "Focus session ID is required.",
-          400,
+          400
+        );
+      }
+
+      if (!ambientSound) {
+        return sendError(
+          res,
+          "Ambient sound is required.",
+          400
+        );
+      }
+
+      const session =
+        await focusSessionService.updateAmbientSound(
+          userId,
+          id,
+          ambientSound
+        );
+
+      return sendSuccess(
+        res,
+        "Ambient sound updated successfully.",
+        session
+      );
+    } catch (error) {
+      console.error(
+        "Update ambient sound error:",
+        error
+      );
+
+      return sendError(
+        res,
+        error instanceof Error
+          ? error.message
+          : "Failed to update ambient sound.",
+        400
+      );
+    }
+  }
+
+  /**
+   * PATCH /api/focus-sessions/:id/strict
+   */
+  async updateStrictMode(
+    req: Request,
+    res: Response
+  ) {
+    try {
+      const userId = req.user?.id;
+      const id = getParamString(req.params.id);
+      const { isStrict } = req.body;
+
+      if (!userId) {
+        return sendError(
+          res,
+          "Unauthorized",
+          401
+        );
+      }
+
+      if (!id) {
+        return sendError(
+          res,
+          "Focus session ID is required.",
+          400
         );
       }
 
       if (
-        typeof remainingTime !== "number"
+        typeof isStrict !== "boolean"
       ) {
         return sendError(
           res,
-          "Remaining time must be a number.",
-          400,
+          "isStrict must be a boolean value.",
+          400
+        );
+      }
+
+      const session =
+        await focusSessionService.updateStrictMode(
+          userId,
+          id,
+          isStrict
+        );
+
+      return sendSuccess(
+        res,
+        "Strict mode updated successfully.",
+        session
+      );
+    } catch (error) {
+      console.error(
+        "Update strict mode error:",
+        error
+      );
+
+      return sendError(
+        res,
+        error instanceof Error
+          ? error.message
+          : "Failed to update strict mode.",
+        400
+      );
+    }
+  }
+
+  /**
+   * PATCH /api/focus-sessions/:id/pause
+   */
+  async pauseSession(
+    req: Request,
+    res: Response
+  ) {
+    try {
+      const userId = req.user?.id;
+      const id = getParamString(req.params.id);
+      const { remainingTime } = req.body;
+
+      if (!userId) {
+        return sendError(
+          res,
+          "Unauthorized",
+          401
+        );
+      }
+
+      if (!id) {
+        return sendError(
+          res,
+          "Focus session ID is required.",
+          400
         );
       }
 
       const session =
         await focusSessionService.pauseSession(
-          String(userId),
-          String(id),
-          remainingTime,
+          userId,
+          id,
+          remainingTime
         );
 
       return sendSuccess(
         res,
-        "Focus session paused.",
-        session,
+        "Focus session paused successfully.",
+        session
       );
     } catch (error) {
-      next(error);
+      console.error(
+        "Pause focus session error:",
+        error
+      );
+
+      return sendError(
+        res,
+        error instanceof Error
+          ? error.message
+          : "Failed to pause focus session.",
+        400
+      );
     }
   }
 
+  /**
+   * PATCH /api/focus-sessions/:id/resume
+   */
   async resumeSession(
     req: Request,
-    res: Response,
-    next: NextFunction,
+    res: Response
   ) {
     try {
       const userId = req.user?.id;
-      const { id } = req.params;
+      const id = getParamString(req.params.id);
 
       if (!userId) {
         return sendError(
           res,
-          "Authentication required. Please log in.",
-          401,
+          "Unauthorized",
+          401
+        );
+      }
+
+      if (!id) {
+        return sendError(
+          res,
+          "Focus session ID is required.",
+          400
         );
       }
 
       const session =
         await focusSessionService.resumeSession(
-          String(userId),
-          String(id),
+          userId,
+          id
         );
 
       return sendSuccess(
         res,
-        "Focus session resumed.",
-        session,
+        "Focus session resumed successfully.",
+        session
       );
     } catch (error) {
-      next(error);
+      console.error(
+        "Resume focus session error:",
+        error
+      );
+
+      return sendError(
+        res,
+        error instanceof Error
+          ? error.message
+          : "Failed to resume focus session.",
+        400
+      );
     }
   }
 
+  /**
+   * PATCH /api/focus-sessions/:id/complete
+   */
   async completeSession(
     req: Request,
-    res: Response,
-    next: NextFunction,
+    res: Response
   ) {
     try {
       const userId = req.user?.id;
-      const { id } = req.params;
+      const id = getParamString(req.params.id);
 
       if (!userId) {
         return sendError(
           res,
-          "Authentication required. Please log in.",
-          401,
+          "Unauthorized",
+          401
+        );
+      }
+
+      if (!id) {
+        return sendError(
+          res,
+          "Focus session ID is required.",
+          400
         );
       }
 
       const session =
         await focusSessionService.completeSession(
-          String(userId),
-          String(id),
+          userId,
+          id
         );
 
       return sendSuccess(
         res,
-        "Focus session completed.",
-        session,
+        "Focus session completed successfully.",
+        session
       );
     } catch (error) {
-      next(error);
+      console.error(
+        "Complete focus session error:",
+        error
+      );
+
+      return sendError(
+        res,
+        error instanceof Error
+          ? error.message
+          : "Failed to complete focus session.",
+        400
+      );
     }
   }
 
+  /**
+   * PATCH /api/focus-sessions/:id/cancel
+   */
   async cancelSession(
     req: Request,
-    res: Response,
-    next: NextFunction,
+    res: Response
   ) {
     try {
       const userId = req.user?.id;
-      const { id } = req.params;
+      const id = getParamString(req.params.id);
 
       if (!userId) {
         return sendError(
           res,
-          "Authentication required. Please log in.",
-          401,
+          "Unauthorized",
+          401
+        );
+      }
+
+      if (!id) {
+        return sendError(
+          res,
+          "Focus session ID is required.",
+          400
         );
       }
 
       const session =
         await focusSessionService.cancelSession(
-          String(userId),
-          String(id),
+          userId,
+          id
         );
 
       return sendSuccess(
         res,
-        "Focus session cancelled.",
-        session,
+        "Focus session cancelled successfully.",
+        session
       );
     } catch (error) {
-      next(error);
+      console.error(
+        "Cancel focus session error:",
+        error
+      );
+
+      return sendError(
+        res,
+        error instanceof Error
+          ? error.message
+          : "Failed to cancel focus session.",
+        400
+      );
     }
   }
+}
+
+function getParamString(
+  value: string | string[] | undefined,
+): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
 }
 
 export const focusSessionController =

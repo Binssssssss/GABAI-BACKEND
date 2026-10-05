@@ -1,5 +1,8 @@
 import { taskService, } from "../services/task.service";
 export class TaskController {
+    // ===============================
+    // GET ALL TASKS
+    // ===============================
     async getAllTasks(req, res, next) {
         try {
             const userId = typeof req.user?.id === "string"
@@ -34,6 +37,36 @@ export class TaskController {
             next(error);
         }
     }
+    // ===============================
+    // GET TASKS BY FILTER
+    // ===============================
+    async getTasksByFilter(req, res, next) {
+        try {
+            const userId = typeof req.user?.id === "string"
+                ? req.user.id
+                : undefined;
+            if (!userId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Unauthorized",
+                });
+            }
+            const filter = typeof req.query.filter === "string"
+                ? req.query.filter
+                : "all";
+            const tasks = await taskService.getTasksByFilter(userId, filter);
+            return res.status(200).json({
+                success: true,
+                data: tasks,
+            });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    // ===============================
+    // UPDATE SUBTASK
+    // ===============================
     async updateSubTask(req, res, next) {
         try {
             const userId = typeof req.user?.id === "string"
@@ -83,6 +116,9 @@ export class TaskController {
             next(error);
         }
     }
+    // ===============================
+    // GET TASKS BY DATE
+    // ===============================
     async getTasksByDate(req, res, next) {
         try {
             const userId = typeof req.user?.id === "string"
@@ -113,22 +149,32 @@ export class TaskController {
             next(error);
         }
     }
+    // ===============================
+    // GET TASK BY ID
+    // ===============================
     async getTaskById(req, res, next) {
         try {
-            const userId = typeof req.user?.id === "string"
-                ? req.user.id
-                : undefined;
-            const id = Array.isArray(req.params.id)
+            const userId = req.user?.id;
+            const taskId = Array.isArray(req.params.id)
                 ? req.params.id[0]
                 : req.params.id;
-            const taskId = Array.isArray(id) ? id[0] : id;
             if (!userId) {
                 return res.status(401).json({
                     success: false,
                     message: "Unauthorized",
                 });
             }
-            const task = await taskService.getTaskById(userId, taskId);
+            if (!taskId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid task ID",
+                });
+            }
+            console.log("========== CONTROLLER DEBUG ==========");
+            console.log("taskId:", taskId);
+            console.log("userId:", userId);
+            console.log("======================================");
+            const task = await taskService.getTaskById(taskId, userId);
             return res.status(200).json({
                 success: true,
                 data: task,
@@ -138,6 +184,9 @@ export class TaskController {
             next(error);
         }
     }
+    // ===============================
+    // CREATE TASK
+    // ===============================
     async createTask(req, res, next) {
         try {
             const userId = typeof req.user?.id === "string"
@@ -160,6 +209,9 @@ export class TaskController {
             next(error);
         }
     }
+    // ===============================
+    // UPDATE TASK
+    // ===============================
     async updateTask(req, res, next) {
         try {
             const userId = typeof req.user?.id === "string"
@@ -189,6 +241,9 @@ export class TaskController {
             next(error);
         }
     }
+    // ===============================
+    // DELETE TASK
+    // ===============================
     async deleteTask(req, res, next) {
         try {
             const userId = typeof req.user?.id === "string"
@@ -201,7 +256,10 @@ export class TaskController {
                     message: "Unauthorized",
                 });
             }
-            const result = await taskService.deleteTask(userId, typeof id === "string" ? id : id[0]);
+            const taskId = typeof id === "string"
+                ? id
+                : id[0];
+            const result = await taskService.deleteTask(userId, taskId);
             return res.status(200).json({
                 success: true,
                 ...result,
@@ -211,6 +269,9 @@ export class TaskController {
             next(error);
         }
     }
+    // ===============================
+    // UPCOMING DEADLINES
+    // ===============================
     async getUpcomingDeadlines(req, res, next) {
         try {
             const userId = typeof req.user?.id === "string"
@@ -232,6 +293,9 @@ export class TaskController {
             next(error);
         }
     }
+    // ===============================
+    // RESCHEDULE TASK
+    // ===============================
     async rescheduleTask(req, res, next) {
         try {
             const userId = typeof req.user?.id === "string"
@@ -246,7 +310,13 @@ export class TaskController {
             const taskId = Array.isArray(req.params.id)
                 ? req.params.id[0]
                 : req.params.id;
-            const { dueDate, dueTime } = req.body;
+            if (typeof taskId !== "string") {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid task ID",
+                });
+            }
+            const { dueDate, dueTime, } = req.body;
             if (typeof dueDate !== "string" ||
                 !dueDate.trim()) {
                 return res.status(400).json({
@@ -268,6 +338,9 @@ export class TaskController {
             next(error);
         }
     }
+    // ===============================
+    // CONVERT NOTE TO TASK
+    // ===============================
     async convertNoteToTask(req, res, next) {
         try {
             const userId = typeof req.user?.id === "string"
@@ -337,6 +410,82 @@ export class TaskController {
             next(error);
         }
     }
+    // ===============================
+    // BULK COMPLETE TASKS
+    // ===============================
+    async bulkCompleteTasks(req, res, next) {
+        try {
+            const userId = typeof req.user?.id === "string"
+                ? req.user.id
+                : undefined;
+            if (!userId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Unauthorized",
+                });
+            }
+            const result = await taskService.bulkComplete(req.body, userId);
+            return res.status(200).json({
+                success: true,
+                data: result,
+            });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    // ===============================
+    // BULK DELETE TASKS
+    // ===============================
+    async bulkDeleteTasks(req, res, next) {
+        try {
+            const userId = typeof req.user?.id === "string"
+                ? req.user.id
+                : undefined;
+            if (!userId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Unauthorized",
+                });
+            }
+            const result = await taskService.bulkDelete(req.body, userId);
+            return res.status(200).json({
+                success: true,
+                data: result,
+            });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    // ===============================
+    // GET TASK ANALYTICS
+    // ===============================
+    async getAnalytics(req, res, next) {
+        try {
+            const userId = typeof req.user?.id === "string"
+                ? req.user.id
+                : undefined;
+            if (!userId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Unauthorized",
+                });
+            }
+            const analytics = await taskService.getAnalytics(userId);
+            return res.status(200).json({
+                success: true,
+                message: "Task analytics retrieved successfully",
+                data: analytics,
+            });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
 }
+// ===============================
+// CONTROLLER INSTANCE
+// ===============================
 export const taskController = new TaskController();
 //# sourceMappingURL=task.controller.js.map
