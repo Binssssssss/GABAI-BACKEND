@@ -11,7 +11,7 @@ export const getNotifications = async (
   res: Response
 ) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const notifications =
       await notificationService.getNotificationsByUser(
@@ -40,7 +40,7 @@ export const getNotificationById = async (
   res: Response
 ) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const id = req.params.id;
 
     const notification =
@@ -78,7 +78,7 @@ export const createNotification = async (
   res: Response
 ) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const notification =
       await notificationService.createNotification(
@@ -108,7 +108,7 @@ export const markNotificationAsRead = async (
   res: Response
 ) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const id = req.params.id;
 
     const result =
@@ -146,7 +146,7 @@ export const markAllNotificationsAsRead = async (
   res: Response
 ) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     await notificationService.markAllNotificationsAsRead(
       userId
@@ -174,7 +174,7 @@ export const deleteNotification = async (
   res: Response
 ) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const id = req.params.id;
 
     const result =
