@@ -6,7 +6,7 @@ export const getAcademicPressure = async (
   res: Response
 ) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const today = new Date();
 
    const tasks = await prisma.task.findMany({
