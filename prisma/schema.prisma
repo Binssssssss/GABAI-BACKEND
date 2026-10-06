@@ -38,6 +38,7 @@ model Subject {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, name])
   @@index([userId])
@@ -126,15 +127,16 @@ model Transaction {
   amount    Float
   type      String
   category  String
-  date      DateTime @default(now())
+  userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([date])
+  @@index([category])
+  @@index([createdAt])
+  @@index([type])
   @@map("transactions")
 }
 
@@ -157,22 +159,17 @@ model Note {
   title      String   @default("Untitled Note")
   content    String   @default("")
   type       String   @default("BLANK")
-  category   String   @default("General")
-  tags       String[] @default([])
-  isPinned   Boolean  @default(false)
-  isFavorite Boolean  @default(false)
   isArchived Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   userId     String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   String   @default("General")
+  tags       String[] @default([])
+  isPinned   Boolean  @default(false)
+  isFavorite Boolean  @default(false)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([category])
-  @@index([isPinned])
-  @@index([isFavorite])
-  @@index([isArchived])
   @@map("notes")
 }
 
@@ -183,7 +180,7 @@ model NoteTemplate {
   content     String   @default("")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  userId      String? // null = built-in template shared by everyone
+  userId      String?
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
