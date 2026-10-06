@@ -17,6 +17,11 @@ if (!privateKey) {
   throw new Error("FIREBASE_PRIVATE_KEY is not configured.");
 }
 
+const formattedPrivateKey = privateKey
+  .replace(/\\n/g, "\n")
+  .replace(/\r\n/g, "\n")
+  .trim();
+
 const firebaseAdminApp =
   getApps().length > 0
     ? getApps()[0]
@@ -24,7 +29,7 @@ const firebaseAdminApp =
         credential: cert({
           projectId,
           clientEmail,
-          privateKey: privateKey.replace(/\\n/g, "\n"),
+          privateKey: formattedPrivateKey,
         }),
       });
 
