@@ -24,29 +24,14 @@ model User {
   transactions     Transaction[]
   notes            Note[]
   noteTemplates    NoteTemplate[]
-  id                String                @id @default(cuid())
-  fullName          String
-  email             String                @unique
-  password          String
-  createdAt         DateTime              @default(now())
-  updatedAt         DateTime              @updatedAt
-  firebaseUid       String?               @unique
-  Note              public_Note[]
-  NoteTemplate      public_NoteTemplate[]
-  FocusSessions     FocusSession[]
-  noteTemplates     NoteTemplate[]
-  notes             Note[]
-  notifications     Notification[]
-  recent_activities RecentActivity[]
-  subjects          Subject[]
-  tasks             Task[]
-  transactions      Transaction[]
+  publicNotes      public_Note[]
+  publicNoteTemplates public_NoteTemplate[]
 
   @@map("users")
 }
 
 model Subject {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   name      String
   userId    String
   createdAt DateTime @default(now())
@@ -134,7 +119,7 @@ model FocusSession {
 }
 
 model Transaction {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   title     String
   amount    Float
   type      String
@@ -209,7 +194,8 @@ model public_Note {
   isArchived Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime
-  users      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
 
   @@index([userId])
   @@index([userId, isArchived])
