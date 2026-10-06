@@ -3,4 +3,6 @@ node_modules
 
 /src/generated/prisma
 .env
-src/config/credentials/firebase-service-account.json
+.env.*
+!.env.example
+src/config/credentials/

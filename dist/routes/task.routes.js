@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
-import { authMiddleware } from "@/middleware/auth.middleware";
-import { validate } from "@/middleware/validation.middleware";
-import { taskController } from "@/controllers/task.controller";
+import { authMiddleware } from "../middleware/auth.middleware.js";
+import { validate } from "../middleware/validation.middleware.js";
+import { taskController } from "../controllers/task.controller.js";
 const router = Router();
 const bulkTaskSchema = z.object({
     taskIds: z

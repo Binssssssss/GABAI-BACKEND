@@ -1,7 +1,7 @@
-import * as notificationService from "@/services/notification.service";
+import * as notificationService from "../services/notification.service.js";
 export const getNotifications = async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const userId = req.user.id;
         const notifications = await notificationService.getNotificationsByUser(userId);
         return res.status(200).json({
             success: true,
@@ -18,7 +18,7 @@ export const getNotifications = async (req, res) => {
 };
 export const getNotificationById = async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const userId = req.user.id;
         const id = req.params.id;
         const notification = await notificationService.getNotificationById(userId, id);
         if (!notification) {
@@ -42,7 +42,7 @@ export const getNotificationById = async (req, res) => {
 };
 export const createNotification = async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const userId = req.user.id;
         const notification = await notificationService.createNotification(userId, req.body);
         return res.status(201).json({
             success: true,
@@ -59,7 +59,7 @@ export const createNotification = async (req, res) => {
 };
 export const markNotificationAsRead = async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const userId = req.user.id;
         const id = req.params.id;
         const result = await notificationService.markNotificationAsRead(userId, id);
         if (result.count === 0) {
@@ -83,7 +83,7 @@ export const markNotificationAsRead = async (req, res) => {
 };
 export const markAllNotificationsAsRead = async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const userId = req.user.id;
         await notificationService.markAllNotificationsAsRead(userId);
         return res.status(200).json({
             success: true,
@@ -100,7 +100,7 @@ export const markAllNotificationsAsRead = async (req, res) => {
 };
 export const deleteNotification = async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const userId = req.user.id;
         const id = req.params.id;
         const result = await notificationService.deleteNotification(userId, id);
         if (result.count === 0) {

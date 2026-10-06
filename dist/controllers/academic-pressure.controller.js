@@ -1,4 +1,4 @@
-import { academicPressureService } from "../services/academic-pressure.service";
+import { academicPressureService } from "../services/academic-pressure.service.js";
 export class AcademicPressureController {
     async getAcademicPressure(req, res, next) {
         try {

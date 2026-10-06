@@ -1,4 +1,4 @@
-import { taskRepository } from "../repositories/task.repository";
+import { taskRepository } from "../repositories/task.repository.js";
 class AppError extends Error {
     statusCode;
     constructor(message, statusCode) {

@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "tsc && tsc-alias --resolve-full-paths --resolve-full-extension .js && cpy \"src/generated/prisma/**/*\" dist/generated/prisma --parents && node -e \"const fs=require('fs'); const p='dist/lib/prisma.js'; let s=fs.readFileSync(p,'utf8'); s=s.replace('@/generated/prisma/client','../generated/prisma/client.js'); fs.writeFileSync(p,s);\"",
     "start": "node dist/server.js",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev"
   },
@@ -37,8 +38,11 @@
     "@types/node": "^26.1.1",
     "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.20.0",
+    "cpy-cli": "^7.0.0",
     "prisma": "^7.9.0",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.9.7",
+    "tsc-esm-fix": "^3.1.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.23.0",
     "typescript": "^6.0.3"

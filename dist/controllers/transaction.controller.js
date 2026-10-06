@@ -1,4 +1,4 @@
-import { createTransaction as createTransactionService, getTransactions as getTransactionsService, getTransaction as getTransactionService, updateTransaction as updateTransactionService, deleteTransaction as deleteTransactionService, getWalletBalance as getWalletBalanceService, } from "../services/transaction.service";
+import { createTransaction as createTransactionService, getTransactions as getTransactionsService, getTransaction as getTransactionService, updateTransaction as updateTransactionService, deleteTransaction as deleteTransactionService, getWalletBalance as getWalletBalanceService, } from "../services/transaction.service.js";
 export async function createTransaction(req, res) {
     try {
         const userId = req.user?.id;
@@ -16,18 +16,19 @@ export async function createTransaction(req, res) {
         });
     }
     catch (error) {
-        const message = error instanceof Error
-            ? error.message
-            : "Failed to create transaction";
+        console.error("CREATE TRANSACTION ERROR:", error);
         return res.status(400).json({
             success: false,
-            message,
+            message: error instanceof Error
+                ? error.message
+                : "Failed to create transaction",
         });
     }
 }
 export async function getTransactions(req, res) {
     try {
         const userId = req.user?.id;
+        console.log("GET TRANSACTIONS USER ID:", userId);
         if (!userId) {
             return res.status(401).json({
                 success: false,
@@ -35,6 +36,7 @@ export async function getTransactions(req, res) {
             });
         }
         const transactions = await getTransactionsService(userId);
+        console.log("GET TRANSACTIONS RESULT:", transactions);
         return res.status(200).json({
             success: true,
             message: "Transactions retrieved successfully",
@@ -42,9 +44,12 @@ export async function getTransactions(req, res) {
         });
     }
     catch (error) {
+        console.error("GET TRANSACTIONS ERROR:", error);
         return res.status(500).json({
             success: false,
-            message: "Failed to retrieve transactions",
+            message: error instanceof Error
+                ? error.message
+                : "Failed to retrieve transactions",
         });
     }
 }
@@ -64,12 +69,12 @@ export async function getTransaction(req, res) {
         });
     }
     catch (error) {
-        const message = error instanceof Error
-            ? error.message
-            : "Transaction not found";
+        console.error("GET TRANSACTION ERROR:", error);
         return res.status(404).json({
             success: false,
-            message,
+            message: error instanceof Error
+                ? error.message
+                : "Transaction not found",
         });
     }
 }
@@ -90,12 +95,12 @@ export async function updateTransaction(req, res) {
         });
     }
     catch (error) {
-        const message = error instanceof Error
-            ? error.message
-            : "Failed to update transaction";
+        console.error("UPDATE TRANSACTION ERROR:", error);
         return res.status(400).json({
             success: false,
-            message,
+            message: error instanceof Error
+                ? error.message
+                : "Failed to update transaction",
         });
     }
 }
@@ -115,12 +120,12 @@ export async function deleteTransaction(req, res) {
         });
     }
     catch (error) {
-        const message = error instanceof Error
-            ? error.message
-            : "Failed to delete transaction";
+        console.error("DELETE TRANSACTION ERROR:", error);
         return res.status(404).json({
             success: false,
-            message,
+            message: error instanceof Error
+                ? error.message
+                : "Failed to delete transaction",
         });
     }
 }
@@ -141,9 +146,12 @@ export async function getWalletBalance(req, res) {
         });
     }
     catch (error) {
+        console.error("GET WALLET BALANCE ERROR:", error);
         return res.status(500).json({
             success: false,
-            message: "Failed to retrieve wallet balance",
+            message: error instanceof Error
+                ? error.message
+                : "Failed to retrieve wallet balance",
         });
     }
 }

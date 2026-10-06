@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { createNote, getNotes, getArchivedNotes, getNoteById, updateNote, deleteNote, togglePin, toggleFavorite, archiveNote, unarchiveNote, } from '../controllers/note.controller';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { createNote, getNotes, getArchivedNotes, getNoteById, updateNote, deleteNote, togglePin, toggleFavorite, archiveNote, unarchiveNote, } from '../controllers/note.controller.js';
+import { authMiddleware } from '../middleware/auth.middleware.js';
 const router = Router();
 router.use(authMiddleware);
 // Get active notes

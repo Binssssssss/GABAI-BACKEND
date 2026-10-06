@@ -1,4 +1,4 @@
-import { smartReminderRepository } from "@/repositories/smart-reminder.repository";
+import { smartReminderRepository } from "../repositories/smart-reminder.repository.js";
 export const smartReminderService = {
     async getSmartReminder(userId) {
         const tasks = await smartReminderRepository.getUserTasks(userId);
