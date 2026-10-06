@@ -24,18 +24,34 @@ model User {
   transactions     Transaction[]
   notes            Note[]
   noteTemplates    NoteTemplate[]
+  id                String                @id @default(cuid())
+  fullName          String
+  email             String                @unique
+  password          String
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  firebaseUid       String?               @unique
+  Note              public_Note[]
+  NoteTemplate      public_NoteTemplate[]
+  FocusSessions     FocusSession[]
+  noteTemplates     NoteTemplate[]
+  notes             Note[]
+  notifications     Notification[]
+  recent_activities RecentActivity[]
+  subjects          Subject[]
+  tasks             Task[]
+  transactions      Transaction[]
 
   @@map("users")
 }
+
 model Subject {
   id        String   @id @default(cuid())
   name      String
   userId    String
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, name])
   @@index([userId])
@@ -96,22 +112,21 @@ model Notification {
 }
 
 model FocusSession {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   userId        String
   duration      Int
   remainingTime Int
-  targetHours   Float    @default(1.5)
-  status        String   @default("IDLE")
-  ambientSound  String   @default("NONE")
-  isStrict      Boolean  @default(false)
-  subject       String?
-  focusMode     String?
+  targetHours   Float     @default(1.5)
+  status        String    @default("IDLE")
   startedAt     DateTime?
   endedAt       DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  ambientSound  String    @default("NONE")
+  isStrict      Boolean   @default(false)
+  subject       String?
+  focusMode     String?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
@@ -124,15 +139,16 @@ model Transaction {
   amount    Float
   type      String
   category  String
-  date      DateTime @default(now())
+  userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([date])
+  @@index([category])
+  @@index([createdAt])
+  @@index([type])
   @@map("transactions")
 }
 
@@ -150,28 +166,22 @@ model RecentActivity {
   @@map("recent_activities")
 }
 
-
 model Note {
   id         String   @id @default(uuid())
   title      String   @default("Untitled Note")
   content    String   @default("")
   type       String   @default("BLANK")
-  category   String   @default("General")
-  tags       String[] @default([])
-  isPinned   Boolean  @default(false)
-  isFavorite Boolean  @default(false)
   isArchived Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   userId     String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   String   @default("General")
+  tags       String[] @default([])
+  isPinned   Boolean  @default(false)
+  isFavorite Boolean  @default(false)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([category])
-  @@index([isPinned])
-  @@index([isFavorite])
-  @@index([isArchived])
   @@map("notes")
 }
 
@@ -182,9 +192,40 @@ model NoteTemplate {
   content     String   @default("")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  userId      String? // null = built-in template shared by everyone
+  userId      String?
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("note_templates")
+}
+
+model public_Note {
+  id         String   @id
+  userId     String
+  title      String
+  content    String   @default("")
+  type       String   @default("BLANK")
+  isPinned   Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  users      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isArchived])
+  @@map("Note")
+}
+
+model public_NoteTemplate {
+  id          String   @id
+  userId      String?
+  name        String
+  description String   @default("")
+  content     String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  users       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("NoteTemplate")
 }

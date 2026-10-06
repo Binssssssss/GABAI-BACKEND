@@ -117,19 +117,18 @@ export class TaskService {
   // GET ALL TASKS
   // ===============================
 
-  async getAllTasks(
-    userId: string,
-    filters?: TaskFilters,
-  ) {
-    const tasks =
-      await taskRepository.findAllByUser(
-        userId,
-        filters,
-      );
+ async getAllTasks(
+  userId: string,
+  filters?: TaskFilters,
+) {
+  const tasks =
+    await taskRepository.findAllByUser(
+      userId,
+      filters,
+    );
 
-    return tasks.map(formatCalendarEvent);
-  }
-
+  return tasks;
+}
   // ===============================
   // GET TASKS BY FILTER
   // ===============================
@@ -225,25 +224,25 @@ async getTaskById(taskId: string, userId: string) {
     throw new AppError("Task not found.", 404);
   }
 
-  return formatCalendarEvent(task);
+ return task;
 }
 
   // ===============================
   // CREATE TASK
   // ===============================
 
-  async createTask(
-    userId: string,
-    data: CreateTaskInput,
-  ) {
-    const task =
-      await taskRepository.create(
-        userId,
-        data,
-      );
+ async createTask(
+  userId: string,
+  data: CreateTaskInput,
+) {
+  const task =
+    await taskRepository.create(
+      userId,
+      data,
+    );
 
-    return formatCalendarEvent(task);
-  }
+  return task;
+}
 
   // ===============================
   // UPDATE TASK
@@ -286,9 +285,7 @@ async getTaskById(taskId: string, userId: string) {
       );
     }
 
-    return formatCalendarEvent(
-      updatedTask,
-    );
+    return updatedTask;
   }
 
   // ===============================
@@ -385,9 +382,7 @@ async getTaskById(taskId: string, userId: string) {
       );
     }
 
-    return formatCalendarEvent(
-      updatedTask,
-    );
+   return updatedTask;
   }
 
   // ===============================
