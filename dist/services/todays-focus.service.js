@@ -1,4 +1,4 @@
-import { todaysFocusRepository } from "@/repositories/todays-focus.repository";
+import { todaysFocusRepository } from "../repositories/todays-focus.repository.js";
 function getToday() {
     const now = new Date();
     const year = now.getFullYear();

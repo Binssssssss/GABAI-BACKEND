@@ -1,5 +1,5 @@
-import { subjectProgressService } from "@/services/subject-progress.service";
-import { asyncHandler } from "@/utils/helper";
+import { subjectProgressService } from "../services/subject-progress.service.js";
+import { asyncHandler } from "../utils/helper.js";
 export const getSubjectProgress = asyncHandler(async (req, res) => {
     const userId = req.user?.id;
     if (!userId) {

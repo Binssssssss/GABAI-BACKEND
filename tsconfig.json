@@ -6,6 +6,8 @@
     "lib": ["ES2023"],
     "rootDir": "src",
     "outDir": "dist",
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "strict": true,
     "noImplicitAny": true,
     "allowJs": false,
@@ -15,12 +17,10 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["src/*"]
     },
-    "types": ["node"],
     "moduleDetection": "force"
   },
-
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

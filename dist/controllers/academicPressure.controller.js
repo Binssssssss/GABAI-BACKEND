@@ -1,7 +1,7 @@
-import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
 export const getAcademicPressure = async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const userId = String(req.user?.id);
         const today = new Date();
         const tasks = await prisma.task.findMany({
             where: {

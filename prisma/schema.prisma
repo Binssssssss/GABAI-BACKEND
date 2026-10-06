@@ -8,6 +8,22 @@ datasource db {
 }
 
 model User {
+  id               String   @id @default(uuid())
+  fullName         String
+  email            String   @unique
+  password         String
+  firebaseUid      String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  focusSessions    FocusSession[]
+  notifications    Notification[]
+  recentActivities RecentActivity[]
+  subjects         Subject[]
+  tasks            Task[]
+  transactions     Transaction[]
+  notes            Note[]
+  noteTemplates    NoteTemplate[]
   id                String                @id @default(cuid())
   fullName          String
   email             String                @unique

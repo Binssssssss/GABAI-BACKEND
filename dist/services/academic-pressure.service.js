@@ -1,4 +1,4 @@
-import { academicPressureRepository } from "../repositories/academic-pressure.repository";
+import { academicPressureRepository } from "../repositories/academic-pressure.repository.js";
 export const academicPressureService = {
     async calculatePressure(userId) {
         const tasks = await academicPressureRepository.getStudentTasks(userId);

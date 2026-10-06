@@ -14,7 +14,7 @@ export class AssistantRepository {
           take: 20,
         }),
 
-        prisma.subjects.findMany({
+        prisma.subject.findMany({
           where: {
             userId,
           },

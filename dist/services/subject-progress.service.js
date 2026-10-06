@@ -1,4 +1,4 @@
-import { subjectProgressRepository } from "@/repositories/subject-progress.repository";
+import { subjectProgressRepository } from "../repositories/subject-progress.repository.js";
 export const subjectProgressService = {
     async getSubjectProgress(userId) {
         const tasks = await subjectProgressRepository.getSubjectProgress(userId);
