@@ -8,7 +8,6 @@ datasource db {
 }
 
 model User {
-<<<<<<< HEAD
   id               String   @id @default(uuid())
   fullName         String
   email            String   @unique
@@ -20,29 +19,12 @@ model User {
   focusSessions    FocusSession[]
   notifications    Notification[]
   recentActivities RecentActivity[]
-  subjects         subjects[]
+  subjects         Subject[]
   tasks            Task[]
   transactions     Transaction[]
   notes            Note[]
   noteTemplates    NoteTemplate[]
 
-=======
-  id                String              @id @default(cuid())
-  fullName          String
-  email             String              @unique
-  password          String
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  FocusSessions     FocusSession[]
-  notifications     Notification[]
-  recent_activities RecentActivity[]
-  tasks             Task[]
-  subjects          Subject[]
-  transactions      Transaction[]
-  notes             Note[]
-  noteTemplates     NoteTemplate[]
-  
->>>>>>> a60f3ea962555d03250cfb6a27edd8fda47e6f3a
   @@map("users")
 }
 model Subject {
