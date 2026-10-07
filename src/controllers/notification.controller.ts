@@ -206,4 +206,43 @@ export const deleteNotification = async (
     });
   }
 };
+export const registerPushToken = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const userId = req.user.id;
 
+    const { token, platform } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Push token is required.",
+      });
+    }
+
+    const pushToken =
+      await notificationService.registerPushToken(
+        userId,
+        token,
+        platform || "android"
+      );
+
+    return res.status(200).json({
+      success: true,
+      message: "Push token registered successfully.",
+      data: pushToken,
+    });
+  } catch (error) {
+    console.error(
+      "Failed to register push token:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to register push token.",
+    });
+  }
+};

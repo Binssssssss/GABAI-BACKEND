@@ -13,25 +13,18 @@ router.get("/test", (_req, res) => {
 
 router.use(authMiddleware);
 
+router.post("/push-token", notificationController.registerPushToken);
+
 router.get("/", notificationController.getNotifications);
 
 router.get("/:id", notificationController.getNotificationById);
 
 router.post("/", notificationController.createNotification);
 
-router.patch(
-  "/read-all",
-  notificationController.markAllNotificationsAsRead
-);
+router.patch("/read-all", notificationController.markAllNotificationsAsRead);
 
-router.patch(
-  "/:id/read",
-  notificationController.markNotificationAsRead
-);
+router.patch("/:id/read", notificationController.markNotificationAsRead);
 
-router.delete(
-  "/:id",
-  notificationController.deleteNotification
-);
+router.delete("/:id", notificationController.deleteNotification);
 
 export default router;
