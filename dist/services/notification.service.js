@@ -30,4 +30,13 @@ export const markAllNotificationsAsRead = async (userId) => {
 export const deleteNotification = async (userId, notificationId) => {
     return notificationRepository.deleteNotification(notificationId, userId);
 };
+// --------------------------------------------------
+// PUSH TOKEN
+// --------------------------------------------------
+export const registerPushToken = async (userId, token, platform) => {
+    return notificationRepository.registerPushToken(userId, token, platform);
+};
+export const getUserPushTokens = async (userId) => {
+    return notificationRepository.getUserPushTokens(userId);
+};
 //# sourceMappingURL=notification.service.js.map
