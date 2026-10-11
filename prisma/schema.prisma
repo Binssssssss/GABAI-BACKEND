@@ -120,7 +120,7 @@ model FocusSession {
 }
 
 model Transaction {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   title     String
   amount    Float
   type      String
