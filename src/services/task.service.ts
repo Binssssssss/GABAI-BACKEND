@@ -1,3 +1,4 @@
+
 import { taskRepository } from "../repositories/task.repository";
 
 import {
@@ -10,6 +11,10 @@ import {
   UpdateSubTaskInput,
   BulkTaskInput,
 } from "../types/task.types";
+
+// ===============================
+// APP ERROR
+// ===============================
 
 class AppError extends Error {
   statusCode: number;
@@ -57,6 +62,10 @@ function formatCalendarEvent(
         }))
       : [];
 
+  const hasTime =
+    typeof task.dueTime === "string" &&
+    task.dueTime.trim() !== "";
+
   return {
     id: task.id,
     title: task.title,
@@ -65,21 +74,15 @@ function formatCalendarEvent(
 
     date: task.dueDate,
 
-    time:
-      task.dueTime &&
-      task.dueTime.trim() !== ""
-        ? task.dueTime
-        : null,
+    time: hasTime ? task.dueTime : null,
 
     priority: task.priority,
 
     category: task.subject,
 
-    isAllDay:
-      !task.dueTime ||
-      task.dueTime.trim() === "",
+    isAllDay: !hasTime,
 
-    duration: null,
+    duration: task.duration ?? 0,
 
     checklist,
 
@@ -95,7 +98,9 @@ function formatCalendarEvent(
 // VALIDATE TASK ID
 // ===============================
 
-function validateTaskId(taskId: string): void {
+function validateTaskId(
+  taskId: string,
+): void {
   if (
     !taskId ||
     typeof taskId !== "string" ||
@@ -117,18 +122,16 @@ export class TaskService {
   // GET ALL TASKS
   // ===============================
 
- async getAllTasks(
-  userId: string,
-  filters?: TaskFilters,
-) {
-  const tasks =
-    await taskRepository.findAllByUser(
+  async getAllTasks(
+    userId: string,
+    filters?: TaskFilters,
+  ) {
+    return await taskRepository.findAllByUser(
       userId,
       filters,
     );
+  }
 
-  return tasks;
-}
   // ===============================
   // GET TASKS BY FILTER
   // ===============================
@@ -197,52 +200,73 @@ export class TaskService {
   // GET TASK BY ID
   // ===============================
 
-async getTaskById(taskId: string, userId: string) {
-  const normalizedTaskId = taskId?.trim();
+  async getTaskById(
+    taskId: string,
+    userId: string,
+  ) {
+    const normalizedTaskId =
+      taskId?.trim();
 
-  console.log("========== GET TASK DEBUG ==========");
-  console.log("Task ID:", normalizedTaskId);
-  console.log("User ID:", userId);
-  console.log("====================================");
-
-  if (!normalizedTaskId) {
-    throw new AppError("Task ID is required.", 400);
-  }
-
-  const task = await taskRepository.findById(
-    normalizedTaskId,
-    userId,
-  );
-
-  console.log("Repository result:", task);
-
-  if (!task) {
-    console.warn(
-      `[TaskService] Task not found. taskId=${normalizedTaskId}, userId=${userId}`,
+    console.log(
+      "========== GET TASK DEBUG ==========",
+    );
+    console.log(
+      "Task ID:",
+      normalizedTaskId,
+    );
+    console.log(
+      "User ID:",
+      userId,
+    );
+    console.log(
+      "====================================",
     );
 
-    throw new AppError("Task not found.", 404);
-  }
+    if (!normalizedTaskId) {
+      throw new AppError(
+        "Task ID is required.",
+        400,
+      );
+    }
 
- return task;
-}
+    const task =
+      await taskRepository.findById(
+        normalizedTaskId,
+        userId,
+      );
+
+    console.log(
+      "Repository result:",
+      task,
+    );
+
+    if (!task) {
+      console.warn(
+        `[TaskService] Task not found. taskId=${normalizedTaskId}, userId=${userId}`,
+      );
+
+      throw new AppError(
+        "Task not found.",
+        404,
+      );
+    }
+
+    return task;
+  }
 
   // ===============================
   // CREATE TASK
   // ===============================
 
- async createTask(
-  userId: string,
-  data: CreateTaskInput,
-) {
-  const task =
-    await taskRepository.create(
+  async createTask(
+    userId: string,
+    data: CreateTaskInput,
+  ) {
+    return await taskRepository.create(
       userId,
       data,
     );
-
-  return task;
-}
+  }
 
   // ===============================
   // UPDATE TASK
@@ -382,7 +406,7 @@ async getTaskById(taskId: string, userId: string) {
       );
     }
 
-   return updatedTask;
+    return updatedTask;
   }
 
   // ===============================
@@ -557,6 +581,279 @@ async getTaskById(taskId: string, userId: string) {
   }
 
   // ===============================
+  // GET TASK RECOMMENDATION
+  // ===============================
+
+  async getTaskRecommendation(
+    userId: string,
+  ) {
+    const tasks =
+      await taskRepository.findAllByUser(
+        userId,
+      );
+
+    // ===============================
+    // ONLY PENDING TASKS
+    // ===============================
+
+    const pendingTasks =
+      tasks.filter(
+        (task) => !task.completed,
+      );
+
+    // ===============================
+    // NO PENDING TASKS
+    // ===============================
+
+    if (pendingTasks.length === 0) {
+      return {
+        hasRecommendation: false,
+        task: null,
+        message:
+          "You're all caught up!",
+      };
+    }
+
+    // ===============================
+    // TODAY
+    // ===============================
+
+    const today =
+      new Date()
+        .toISOString()
+        .split("T")[0];
+
+    // ===============================
+    // 1. OVERDUE TASKS
+    // ===============================
+
+    const overdueTasks =
+      pendingTasks.filter(
+        (task) =>
+          task.dueDate &&
+          task.dueDate < today,
+      );
+
+    if (overdueTasks.length > 0) {
+      const task =
+        [...overdueTasks].sort(
+          (a, b) =>
+            a.dueDate.localeCompare(
+              b.dueDate,
+            ),
+        )[0];
+
+      return {
+        hasRecommendation: true,
+
+        taskId: task.id,
+
+        title: task.title,
+
+        subject: task.subject,
+
+        priority: task.priority,
+
+        dueDate: task.dueDate,
+
+        dueTime:
+          task.dueTime || null,
+
+        urgency: "CRITICAL",
+
+        reason:
+          "This task is overdue and should be completed as soon as possible.",
+      };
+    }
+
+    // ===============================
+    // 2. TASKS DUE TODAY
+    // ===============================
+
+    const todayTasks =
+      pendingTasks.filter(
+        (task) =>
+          task.dueDate === today,
+      );
+
+    if (todayTasks.length > 0) {
+      const priorityOrder: Record<
+        string,
+        number
+      > = {
+        High: 1,
+        Medium: 2,
+        Low: 3,
+      };
+
+      const task =
+        [...todayTasks].sort(
+          (a, b) =>
+            (priorityOrder[
+              a.priority
+            ] ?? 99) -
+            (priorityOrder[
+              b.priority
+            ] ?? 99),
+        )[0];
+
+      return {
+        hasRecommendation: true,
+
+        taskId: task.id,
+
+        title: task.title,
+
+        subject: task.subject,
+
+        priority: task.priority,
+
+        dueDate: task.dueDate,
+
+        dueTime:
+          task.dueTime || null,
+
+        urgency: "HIGH",
+
+        reason:
+          "This task is due today.",
+      };
+    }
+
+    // ===============================
+    // 3. HIGH-PRIORITY UPCOMING TASK
+    // ===============================
+
+    const highPriorityTasks =
+      pendingTasks.filter(
+        (task) =>
+          task.priority === "High" &&
+          task.dueDate &&
+          task.dueDate > today,
+      );
+
+    if (
+      highPriorityTasks.length > 0
+    ) {
+      const task =
+        [...highPriorityTasks].sort(
+          (a, b) =>
+            a.dueDate.localeCompare(
+              b.dueDate,
+            ),
+        )[0];
+
+      return {
+        hasRecommendation: true,
+
+        taskId: task.id,
+
+        title: task.title,
+
+        subject: task.subject,
+
+        priority: task.priority,
+
+        dueDate: task.dueDate,
+
+        dueTime:
+          task.dueTime || null,
+
+        urgency: "HIGH",
+
+        reason:
+          "This is a high-priority task with an upcoming deadline.",
+      };
+    }
+
+    // ===============================
+    // 4. NEAREST UPCOMING TASK
+    // ===============================
+
+    const upcomingTasks =
+      pendingTasks
+        .filter(
+          (task) =>
+            task.dueDate &&
+            task.dueDate >= today,
+        )
+        .sort((a, b) => {
+          if (
+            a.dueDate !==
+            b.dueDate
+          ) {
+            return a.dueDate.localeCompare(
+              b.dueDate,
+            );
+          }
+
+          return (
+            (a.dueTime || "").localeCompare(
+              b.dueTime || "",
+            )
+          );
+        });
+
+    if (
+      upcomingTasks.length > 0
+    ) {
+      const task =
+        upcomingTasks[0];
+
+      return {
+        hasRecommendation: true,
+
+        taskId: task.id,
+
+        title: task.title,
+
+        subject: task.subject,
+
+        priority: task.priority,
+
+        dueDate: task.dueDate,
+
+        dueTime:
+          task.dueTime || null,
+
+        urgency: "MEDIUM",
+
+        reason:
+          "This task has the nearest upcoming deadline.",
+      };
+    }
+
+    // ===============================
+    // 5. PENDING TASK WITHOUT DEADLINE
+    // ===============================
+
+    const task =
+      pendingTasks[0];
+
+    return {
+      hasRecommendation: true,
+
+      taskId: task.id,
+
+      title: task.title,
+
+      subject: task.subject,
+
+      priority: task.priority,
+
+      dueDate: task.dueDate,
+
+      dueTime:
+        task.dueTime || null,
+
+      urgency: "LOW",
+
+      reason:
+        "This task is still pending and has no upcoming deadline.",
+    };
+  }
+
+  // ===============================
   // GET TASK ANALYTICS
   // ===============================
 
@@ -582,7 +879,8 @@ async getTaskById(taskId: string, userId: string) {
     const completionRate =
       totalTasks > 0
         ? Math.round(
-            (completedTasks / totalTasks) *
+            (completedTasks /
+              totalTasks) *
               100,
           )
         : 0;
@@ -739,8 +1037,10 @@ async getTaskById(taskId: string, userId: string) {
         );
 
       if (
-        dueDate >= previousWeekStart &&
-        dueDate <= previousWeekEnd
+        dueDate >=
+          previousWeekStart &&
+        dueDate <=
+          previousWeekEnd
       ) {
         previousWeekCompleted += 1;
       }
@@ -849,3 +1149,4 @@ async getTaskById(taskId: string, userId: string) {
 
 export const taskService =
   new TaskService();
+

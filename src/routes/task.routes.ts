@@ -7,6 +7,10 @@ import { taskController } from "@/controllers/task.controller";
 
 const router = Router();
 
+// ===============================
+// VALIDATION SCHEMAS
+// ===============================
+
 const bulkTaskSchema = z.object({
   taskIds: z
     .array(z.string().uuid("Invalid task ID"))
@@ -57,6 +61,19 @@ router.get(
 );
 
 // ===============================
+// GET TASK RECOMMENDATION
+// IMPORTANT: BEFORE /:id
+// ===============================
+
+router.get(
+  "/recommendation",
+  authMiddleware,
+  taskController.getTaskRecommendation.bind(
+    taskController,
+  ),
+);
+
+// ===============================
 // GET TASKS BY DATE
 // IMPORTANT: BEFORE /:id
 // ===============================
@@ -84,7 +101,9 @@ router.post(
 router.post(
   "/from-note",
   authMiddleware,
-  taskController.convertNoteToTask.bind(taskController),
+  taskController.convertNoteToTask.bind(
+    taskController,
+  ),
 );
 
 // ===============================
@@ -95,7 +114,9 @@ router.post(
   "/bulk/complete",
   authMiddleware,
   validate(bulkTaskSchema),
-  taskController.bulkCompleteTasks.bind(taskController),
+  taskController.bulkCompleteTasks.bind(
+    taskController,
+  ),
 );
 
 // ===============================
@@ -106,38 +127,49 @@ router.delete(
   "/bulk",
   authMiddleware,
   validate(bulkTaskSchema),
-  taskController.bulkDeleteTasks.bind(taskController),
+  taskController.bulkDeleteTasks.bind(
+    taskController,
+  ),
 );
 
 // ===============================
 // UPDATE SUBTASK
+// IMPORTANT: BEFORE /:id
 // ===============================
 
 router.patch(
   "/:id/subtasks/:subTaskId",
   authMiddleware,
-  taskController.updateSubTask.bind(taskController),
+  taskController.updateSubTask.bind(
+    taskController,
+  ),
 );
 
 // ===============================
 // RESCHEDULE TASK
+// IMPORTANT: BEFORE /:id
 // ===============================
 
 router.patch(
   "/:id/reschedule",
   authMiddleware,
-  taskController.rescheduleTask.bind(taskController),
+  taskController.rescheduleTask.bind(
+    taskController,
+  ),
 );
 
 // ===============================
 // GET TASK BY ID
-// IMPORTANT: KEEP THIS LAST
+// IMPORTANT: KEEP BEFORE
+// PARAMETER-SPECIFIC PUT/DELETE
 // ===============================
 
 router.get(
   "/:id",
   authMiddleware,
-  taskController.getTaskById.bind(taskController),
+  taskController.getTaskById.bind(
+    taskController,
+  ),
 );
 
 // ===============================
@@ -147,7 +179,9 @@ router.get(
 router.put(
   "/:id",
   authMiddleware,
-  taskController.updateTask.bind(taskController),
+  taskController.updateTask.bind(
+    taskController,
+  ),
 );
 
 // ===============================
@@ -157,7 +191,10 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  taskController.deleteTask.bind(taskController),
+  taskController.deleteTask.bind(
+    taskController,
+  ),
 );
 
 export default router;
+

@@ -42,7 +42,7 @@ function formatCalendarEvent(task) {
         category: task.subject,
         isAllDay: !task.dueTime ||
             task.dueTime.trim() === "",
-        duration: null,
+        duration: task.duration ?? 0,
         checklist,
         progress: calculateProgress(checklist),
         completed: task.completed,

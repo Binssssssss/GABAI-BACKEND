@@ -46,8 +46,8 @@ export class TaskRepository {
 
         ...(filters?.category &&
           filters.category !== "All" && {
-            subject: filters.category,
-          }),
+          subject: filters.category,
+        }),
 
         ...(filters?.date && {
           dueDate: filters.date,
@@ -292,6 +292,7 @@ export class TaskRepository {
         priority: data.priority,
         dueDate: data.dueDate,
         dueTime: data.dueTime ?? "",
+        duration: data.duration ?? 0,
         hasReminder: data.hasReminder ?? false,
         completed: data.completed ?? false,
         userId,

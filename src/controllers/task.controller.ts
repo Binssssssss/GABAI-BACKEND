@@ -697,6 +697,42 @@ async getTaskById(
     }
   }
 
+    // ===============================
+  // GET TASK RECOMMENDATION
+  // ===============================
+
+  async getTaskRecommendation(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const userId =
+        typeof req.user?.id === "string"
+          ? req.user.id
+          : undefined;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const recommendation =
+        await taskService.getTaskRecommendation(
+          userId,
+        );
+
+      return res.status(200).json({
+        success: true,
+        data: recommendation,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // ===============================
   // GET TASK ANALYTICS
   // ===============================

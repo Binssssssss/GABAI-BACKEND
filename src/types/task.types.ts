@@ -28,6 +28,7 @@ export interface CreateTaskInput {
   priority: TaskPriority;
   dueDate: string;
   dueTime?: string;
+  duration?: number;
   hasReminder?: boolean;
   completed?: boolean;
   subTasks?: CreateTaskSubTaskInput[];

@@ -21,6 +21,7 @@ model User {
   noteTemplates     NoteTemplate[]
   notes             Note[]
   notifications     Notification[]
+  push_tokens       push_tokens[]
   recent_activities RecentActivity[]
   subjects          Subject[]
   tasks             Task[]
@@ -50,6 +51,7 @@ model Task {
   priority    String
   dueDate     String
   dueTime     String
+  duration    Int      @default(0)
   hasReminder Boolean   @default(false)
   completed   Boolean   @default(false)
   createdAt   DateTime  @default(now())
@@ -107,9 +109,9 @@ model FocusSession {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   ambientSound  String    @default("NONE")
+  focusMode     String?
   isStrict      Boolean   @default(false)
   subject       String?
-  focusMode     String?
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -212,4 +214,17 @@ model public_NoteTemplate {
 
   @@index([userId])
   @@map("NoteTemplate")
+}
+
+model push_tokens {
+  id        String   @id
+  token     String   @unique
+  platform  String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  users     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([platform])
+  @@index([userId])
 }
