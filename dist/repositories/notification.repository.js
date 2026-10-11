@@ -63,5 +63,32 @@ export const notificationRepository = {
             },
         });
     },
+    // --------------------------------------------------
+    // PUSH TOKEN
+    // --------------------------------------------------
+    async registerPushToken(userId, token, platform) {
+        return prisma.pushToken.upsert({
+            where: {
+                token,
+            },
+            update: {
+                userId,
+                platform,
+                updatedAt: new Date(),
+            },
+            create: {
+                token,
+                platform,
+                userId,
+            },
+        });
+    },
+    async getUserPushTokens(userId) {
+        return prisma.pushToken.findMany({
+            where: {
+                userId,
+            },
+        });
+    },
 };
 //# sourceMappingURL=notification.repository.js.map

@@ -239,6 +239,15 @@ exports.Prisma.NoteTemplateScalarFieldEnum = {
   userId: 'userId'
 };
 
+exports.Prisma.PushTokenScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  platform: 'platform',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -265,7 +274,8 @@ exports.Prisma.ModelName = {
   Transaction: 'Transaction',
   RecentActivity: 'RecentActivity',
   Note: 'Note',
-  NoteTemplate: 'NoteTemplate'
+  NoteTemplate: 'NoteTemplate',
+  PushToken: 'PushToken'
 };
 
 /**

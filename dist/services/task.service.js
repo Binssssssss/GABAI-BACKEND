@@ -68,7 +68,7 @@ export class TaskService {
     // ===============================
     async getAllTasks(userId, filters) {
         const tasks = await taskRepository.findAllByUser(userId, filters);
-        return tasks.map(formatCalendarEvent);
+        return tasks;
     }
     // ===============================
     // GET TASKS BY FILTER
@@ -117,14 +117,14 @@ export class TaskService {
             console.warn(`[TaskService] Task not found. taskId=${normalizedTaskId}, userId=${userId}`);
             throw new AppError("Task not found.", 404);
         }
-        return formatCalendarEvent(task);
+        return task;
     }
     // ===============================
     // CREATE TASK
     // ===============================
     async createTask(userId, data) {
         const task = await taskRepository.create(userId, data);
-        return formatCalendarEvent(task);
+        return task;
     }
     // ===============================
     // UPDATE TASK
@@ -140,7 +140,7 @@ export class TaskService {
         if (!updatedTask) {
             throw new AppError("Task not found.", 404);
         }
-        return formatCalendarEvent(updatedTask);
+        return updatedTask;
     }
     // ===============================
     // DELETE TASK
@@ -178,7 +178,7 @@ export class TaskService {
         if (!updatedTask) {
             throw new AppError("Task not found.", 404);
         }
-        return formatCalendarEvent(updatedTask);
+        return updatedTask;
     }
     // ===============================
     // UPDATE SUBTASK
