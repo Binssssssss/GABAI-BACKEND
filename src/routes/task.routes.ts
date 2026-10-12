@@ -160,7 +160,15 @@ router.put(
 // ===============================
 // DELETE TASK
 // ===============================
+// ===============================
+// UPDATE TASK (PARTIAL)
+// ===============================
 
+router.patch(
+  "/:id",
+  authMiddleware,
+  taskController.updateTask.bind(taskController),
+);
 router.delete(
   "/:id",
   authMiddleware,
