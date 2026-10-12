@@ -147,6 +147,7 @@ exports.Prisma.TaskScalarFieldEnum = {
   dueDate: 'dueDate',
   dueTime: 'dueTime',
   hasReminder: 'hasReminder',
+  reminderSentAt: 'reminderSentAt',
   completed: 'completed',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -199,10 +200,10 @@ exports.Prisma.TransactionScalarFieldEnum = {
   amount: 'amount',
   type: 'type',
   category: 'category',
-  date: 'date',
+  userId: 'userId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  userId: 'userId'
+  date: 'date'
 };
 
 exports.Prisma.RecentActivityScalarFieldEnum = {
@@ -219,14 +220,14 @@ exports.Prisma.NoteScalarFieldEnum = {
   title: 'title',
   content: 'content',
   type: 'type',
-  category: 'category',
-  tags: 'tags',
-  isPinned: 'isPinned',
-  isFavorite: 'isFavorite',
   isArchived: 'isArchived',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  userId: 'userId'
+  userId: 'userId',
+  category: 'category',
+  tags: 'tags',
+  isPinned: 'isPinned',
+  isFavorite: 'isFavorite'
 };
 
 exports.Prisma.NoteTemplateScalarFieldEnum = {

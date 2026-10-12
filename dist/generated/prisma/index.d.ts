@@ -4344,6 +4344,7 @@ export namespace Prisma {
     dueDate: string | null
     dueTime: string | null
     hasReminder: boolean | null
+    reminderSentAt: Date | null
     completed: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -4359,6 +4360,7 @@ export namespace Prisma {
     dueDate: string | null
     dueTime: string | null
     hasReminder: boolean | null
+    reminderSentAt: Date | null
     completed: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -4374,6 +4376,7 @@ export namespace Prisma {
     dueDate: number
     dueTime: number
     hasReminder: number
+    reminderSentAt: number
     completed: number
     createdAt: number
     updatedAt: number
@@ -4391,6 +4394,7 @@ export namespace Prisma {
     dueDate?: true
     dueTime?: true
     hasReminder?: true
+    reminderSentAt?: true
     completed?: true
     createdAt?: true
     updatedAt?: true
@@ -4406,6 +4410,7 @@ export namespace Prisma {
     dueDate?: true
     dueTime?: true
     hasReminder?: true
+    reminderSentAt?: true
     completed?: true
     createdAt?: true
     updatedAt?: true
@@ -4421,6 +4426,7 @@ export namespace Prisma {
     dueDate?: true
     dueTime?: true
     hasReminder?: true
+    reminderSentAt?: true
     completed?: true
     createdAt?: true
     updatedAt?: true
@@ -4509,6 +4515,7 @@ export namespace Prisma {
     dueDate: string
     dueTime: string
     hasReminder: boolean
+    reminderSentAt: Date | null
     completed: boolean
     createdAt: Date
     updatedAt: Date
@@ -4541,6 +4548,7 @@ export namespace Prisma {
     dueDate?: boolean
     dueTime?: boolean
     hasReminder?: boolean
+    reminderSentAt?: boolean
     completed?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4559,6 +4567,7 @@ export namespace Prisma {
     dueDate?: boolean
     dueTime?: boolean
     hasReminder?: boolean
+    reminderSentAt?: boolean
     completed?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4575,6 +4584,7 @@ export namespace Prisma {
     dueDate?: boolean
     dueTime?: boolean
     hasReminder?: boolean
+    reminderSentAt?: boolean
     completed?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4591,13 +4601,14 @@ export namespace Prisma {
     dueDate?: boolean
     dueTime?: boolean
     hasReminder?: boolean
+    reminderSentAt?: boolean
     completed?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
   }
 
-  export type TaskOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "subject" | "priority" | "dueDate" | "dueTime" | "hasReminder" | "completed" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["task"]>
+  export type TaskOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "subject" | "priority" | "dueDate" | "dueTime" | "hasReminder" | "reminderSentAt" | "completed" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["task"]>
   export type TaskInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     subTasks?: boolean | Task$subTasksArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -4625,6 +4636,7 @@ export namespace Prisma {
       dueDate: string
       dueTime: string
       hasReminder: boolean
+      reminderSentAt: Date | null
       completed: boolean
       createdAt: Date
       updatedAt: Date
@@ -5062,6 +5074,7 @@ export namespace Prisma {
     readonly dueDate: FieldRef<"Task", 'String'>
     readonly dueTime: FieldRef<"Task", 'String'>
     readonly hasReminder: FieldRef<"Task", 'Boolean'>
+    readonly reminderSentAt: FieldRef<"Task", 'DateTime'>
     readonly completed: FieldRef<"Task", 'Boolean'>
     readonly createdAt: FieldRef<"Task", 'DateTime'>
     readonly updatedAt: FieldRef<"Task", 'DateTime'>
@@ -8974,10 +8987,10 @@ export namespace Prisma {
     amount: number | null
     type: string | null
     category: string | null
-    date: Date | null
+    userId: string | null
     createdAt: Date | null
     updatedAt: Date | null
-    userId: string | null
+    date: Date | null
   }
 
   export type TransactionMaxAggregateOutputType = {
@@ -8986,10 +8999,10 @@ export namespace Prisma {
     amount: number | null
     type: string | null
     category: string | null
-    date: Date | null
+    userId: string | null
     createdAt: Date | null
     updatedAt: Date | null
-    userId: string | null
+    date: Date | null
   }
 
   export type TransactionCountAggregateOutputType = {
@@ -8998,10 +9011,10 @@ export namespace Prisma {
     amount: number
     type: number
     category: number
-    date: number
+    userId: number
     createdAt: number
     updatedAt: number
-    userId: number
+    date: number
     _all: number
   }
 
@@ -9020,10 +9033,10 @@ export namespace Prisma {
     amount?: true
     type?: true
     category?: true
-    date?: true
+    userId?: true
     createdAt?: true
     updatedAt?: true
-    userId?: true
+    date?: true
   }
 
   export type TransactionMaxAggregateInputType = {
@@ -9032,10 +9045,10 @@ export namespace Prisma {
     amount?: true
     type?: true
     category?: true
-    date?: true
+    userId?: true
     createdAt?: true
     updatedAt?: true
-    userId?: true
+    date?: true
   }
 
   export type TransactionCountAggregateInputType = {
@@ -9044,10 +9057,10 @@ export namespace Prisma {
     amount?: true
     type?: true
     category?: true
-    date?: true
+    userId?: true
     createdAt?: true
     updatedAt?: true
-    userId?: true
+    date?: true
     _all?: true
   }
 
@@ -9143,10 +9156,10 @@ export namespace Prisma {
     amount: number
     type: string
     category: string
-    date: Date
+    userId: string
     createdAt: Date
     updatedAt: Date
-    userId: string
+    date: Date
     _count: TransactionCountAggregateOutputType | null
     _avg: TransactionAvgAggregateOutputType | null
     _sum: TransactionSumAggregateOutputType | null
@@ -9174,10 +9187,10 @@ export namespace Prisma {
     amount?: boolean
     type?: boolean
     category?: boolean
-    date?: boolean
+    userId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    userId?: boolean
+    date?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["transaction"]>
 
@@ -9187,10 +9200,10 @@ export namespace Prisma {
     amount?: boolean
     type?: boolean
     category?: boolean
-    date?: boolean
+    userId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    userId?: boolean
+    date?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["transaction"]>
 
@@ -9200,10 +9213,10 @@ export namespace Prisma {
     amount?: boolean
     type?: boolean
     category?: boolean
-    date?: boolean
+    userId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    userId?: boolean
+    date?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["transaction"]>
 
@@ -9213,13 +9226,13 @@ export namespace Prisma {
     amount?: boolean
     type?: boolean
     category?: boolean
-    date?: boolean
+    userId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    userId?: boolean
+    date?: boolean
   }
 
-  export type TransactionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "amount" | "type" | "category" | "date" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["transaction"]>
+  export type TransactionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "amount" | "type" | "category" | "userId" | "createdAt" | "updatedAt" | "date", ExtArgs["result"]["transaction"]>
   export type TransactionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -9241,10 +9254,10 @@ export namespace Prisma {
       amount: number
       type: string
       category: string
-      date: Date
+      userId: string
       createdAt: Date
       updatedAt: Date
-      userId: string
+      date: Date
     }, ExtArgs["result"]["transaction"]>
     composites: {}
   }
@@ -9674,10 +9687,10 @@ export namespace Prisma {
     readonly amount: FieldRef<"Transaction", 'Float'>
     readonly type: FieldRef<"Transaction", 'String'>
     readonly category: FieldRef<"Transaction", 'String'>
-    readonly date: FieldRef<"Transaction", 'DateTime'>
+    readonly userId: FieldRef<"Transaction", 'String'>
     readonly createdAt: FieldRef<"Transaction", 'DateTime'>
     readonly updatedAt: FieldRef<"Transaction", 'DateTime'>
-    readonly userId: FieldRef<"Transaction", 'String'>
+    readonly date: FieldRef<"Transaction", 'DateTime'>
   }
     
 
@@ -11188,13 +11201,13 @@ export namespace Prisma {
     title: string | null
     content: string | null
     type: string | null
-    category: string | null
-    isPinned: boolean | null
-    isFavorite: boolean | null
     isArchived: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
     userId: string | null
+    category: string | null
+    isPinned: boolean | null
+    isFavorite: boolean | null
   }
 
   export type NoteMaxAggregateOutputType = {
@@ -11202,13 +11215,13 @@ export namespace Prisma {
     title: string | null
     content: string | null
     type: string | null
-    category: string | null
-    isPinned: boolean | null
-    isFavorite: boolean | null
     isArchived: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
     userId: string | null
+    category: string | null
+    isPinned: boolean | null
+    isFavorite: boolean | null
   }
 
   export type NoteCountAggregateOutputType = {
@@ -11216,14 +11229,14 @@ export namespace Prisma {
     title: number
     content: number
     type: number
-    category: number
-    tags: number
-    isPinned: number
-    isFavorite: number
     isArchived: number
     createdAt: number
     updatedAt: number
     userId: number
+    category: number
+    tags: number
+    isPinned: number
+    isFavorite: number
     _all: number
   }
 
@@ -11233,13 +11246,13 @@ export namespace Prisma {
     title?: true
     content?: true
     type?: true
-    category?: true
-    isPinned?: true
-    isFavorite?: true
     isArchived?: true
     createdAt?: true
     updatedAt?: true
     userId?: true
+    category?: true
+    isPinned?: true
+    isFavorite?: true
   }
 
   export type NoteMaxAggregateInputType = {
@@ -11247,13 +11260,13 @@ export namespace Prisma {
     title?: true
     content?: true
     type?: true
-    category?: true
-    isPinned?: true
-    isFavorite?: true
     isArchived?: true
     createdAt?: true
     updatedAt?: true
     userId?: true
+    category?: true
+    isPinned?: true
+    isFavorite?: true
   }
 
   export type NoteCountAggregateInputType = {
@@ -11261,14 +11274,14 @@ export namespace Prisma {
     title?: true
     content?: true
     type?: true
-    category?: true
-    tags?: true
-    isPinned?: true
-    isFavorite?: true
     isArchived?: true
     createdAt?: true
     updatedAt?: true
     userId?: true
+    category?: true
+    tags?: true
+    isPinned?: true
+    isFavorite?: true
     _all?: true
   }
 
@@ -11349,14 +11362,14 @@ export namespace Prisma {
     title: string
     content: string
     type: string
-    category: string
-    tags: string[]
-    isPinned: boolean
-    isFavorite: boolean
     isArchived: boolean
     createdAt: Date
     updatedAt: Date
     userId: string
+    category: string
+    tags: string[]
+    isPinned: boolean
+    isFavorite: boolean
     _count: NoteCountAggregateOutputType | null
     _min: NoteMinAggregateOutputType | null
     _max: NoteMaxAggregateOutputType | null
@@ -11381,14 +11394,14 @@ export namespace Prisma {
     title?: boolean
     content?: boolean
     type?: boolean
-    category?: boolean
-    tags?: boolean
-    isPinned?: boolean
-    isFavorite?: boolean
     isArchived?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
+    category?: boolean
+    tags?: boolean
+    isPinned?: boolean
+    isFavorite?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["note"]>
 
@@ -11397,14 +11410,14 @@ export namespace Prisma {
     title?: boolean
     content?: boolean
     type?: boolean
-    category?: boolean
-    tags?: boolean
-    isPinned?: boolean
-    isFavorite?: boolean
     isArchived?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
+    category?: boolean
+    tags?: boolean
+    isPinned?: boolean
+    isFavorite?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["note"]>
 
@@ -11413,14 +11426,14 @@ export namespace Prisma {
     title?: boolean
     content?: boolean
     type?: boolean
-    category?: boolean
-    tags?: boolean
-    isPinned?: boolean
-    isFavorite?: boolean
     isArchived?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
+    category?: boolean
+    tags?: boolean
+    isPinned?: boolean
+    isFavorite?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["note"]>
 
@@ -11429,17 +11442,17 @@ export namespace Prisma {
     title?: boolean
     content?: boolean
     type?: boolean
-    category?: boolean
-    tags?: boolean
-    isPinned?: boolean
-    isFavorite?: boolean
     isArchived?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
+    category?: boolean
+    tags?: boolean
+    isPinned?: boolean
+    isFavorite?: boolean
   }
 
-  export type NoteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "content" | "type" | "category" | "tags" | "isPinned" | "isFavorite" | "isArchived" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["note"]>
+  export type NoteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "content" | "type" | "isArchived" | "createdAt" | "updatedAt" | "userId" | "category" | "tags" | "isPinned" | "isFavorite", ExtArgs["result"]["note"]>
   export type NoteInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -11460,14 +11473,14 @@ export namespace Prisma {
       title: string
       content: string
       type: string
-      category: string
-      tags: string[]
-      isPinned: boolean
-      isFavorite: boolean
       isArchived: boolean
       createdAt: Date
       updatedAt: Date
       userId: string
+      category: string
+      tags: string[]
+      isPinned: boolean
+      isFavorite: boolean
     }, ExtArgs["result"]["note"]>
     composites: {}
   }
@@ -11896,14 +11909,14 @@ export namespace Prisma {
     readonly title: FieldRef<"Note", 'String'>
     readonly content: FieldRef<"Note", 'String'>
     readonly type: FieldRef<"Note", 'String'>
-    readonly category: FieldRef<"Note", 'String'>
-    readonly tags: FieldRef<"Note", 'String[]'>
-    readonly isPinned: FieldRef<"Note", 'Boolean'>
-    readonly isFavorite: FieldRef<"Note", 'Boolean'>
     readonly isArchived: FieldRef<"Note", 'Boolean'>
     readonly createdAt: FieldRef<"Note", 'DateTime'>
     readonly updatedAt: FieldRef<"Note", 'DateTime'>
     readonly userId: FieldRef<"Note", 'String'>
+    readonly category: FieldRef<"Note", 'String'>
+    readonly tags: FieldRef<"Note", 'String[]'>
+    readonly isPinned: FieldRef<"Note", 'Boolean'>
+    readonly isFavorite: FieldRef<"Note", 'Boolean'>
   }
     
 
@@ -14554,6 +14567,7 @@ export namespace Prisma {
     dueDate: 'dueDate',
     dueTime: 'dueTime',
     hasReminder: 'hasReminder',
+    reminderSentAt: 'reminderSentAt',
     completed: 'completed',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
@@ -14618,10 +14632,10 @@ export namespace Prisma {
     amount: 'amount',
     type: 'type',
     category: 'category',
-    date: 'date',
+    userId: 'userId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    userId: 'userId'
+    date: 'date'
   };
 
   export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
@@ -14644,14 +14658,14 @@ export namespace Prisma {
     title: 'title',
     content: 'content',
     type: 'type',
-    category: 'category',
-    tags: 'tags',
-    isPinned: 'isPinned',
-    isFavorite: 'isFavorite',
     isArchived: 'isArchived',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    userId: 'userId'
+    userId: 'userId',
+    category: 'category',
+    tags: 'tags',
+    isPinned: 'isPinned',
+    isFavorite: 'isFavorite'
   };
 
   export type NoteScalarFieldEnum = (typeof NoteScalarFieldEnum)[keyof typeof NoteScalarFieldEnum]
@@ -14934,6 +14948,7 @@ export namespace Prisma {
     dueDate?: StringFilter<"Task"> | string
     dueTime?: StringFilter<"Task"> | string
     hasReminder?: BoolFilter<"Task"> | boolean
+    reminderSentAt?: DateTimeNullableFilter<"Task"> | Date | string | null
     completed?: BoolFilter<"Task"> | boolean
     createdAt?: DateTimeFilter<"Task"> | Date | string
     updatedAt?: DateTimeFilter<"Task"> | Date | string
@@ -14951,6 +14966,7 @@ export namespace Prisma {
     dueDate?: SortOrder
     dueTime?: SortOrder
     hasReminder?: SortOrder
+    reminderSentAt?: SortOrderInput | SortOrder
     completed?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -14971,6 +14987,7 @@ export namespace Prisma {
     dueDate?: StringFilter<"Task"> | string
     dueTime?: StringFilter<"Task"> | string
     hasReminder?: BoolFilter<"Task"> | boolean
+    reminderSentAt?: DateTimeNullableFilter<"Task"> | Date | string | null
     completed?: BoolFilter<"Task"> | boolean
     createdAt?: DateTimeFilter<"Task"> | Date | string
     updatedAt?: DateTimeFilter<"Task"> | Date | string
@@ -14988,6 +15005,7 @@ export namespace Prisma {
     dueDate?: SortOrder
     dueTime?: SortOrder
     hasReminder?: SortOrder
+    reminderSentAt?: SortOrderInput | SortOrder
     completed?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -15009,6 +15027,7 @@ export namespace Prisma {
     dueDate?: StringWithAggregatesFilter<"Task"> | string
     dueTime?: StringWithAggregatesFilter<"Task"> | string
     hasReminder?: BoolWithAggregatesFilter<"Task"> | boolean
+    reminderSentAt?: DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
     completed?: BoolWithAggregatesFilter<"Task"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Task"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Task"> | Date | string
@@ -15271,10 +15290,10 @@ export namespace Prisma {
     amount?: FloatFilter<"Transaction"> | number
     type?: StringFilter<"Transaction"> | string
     category?: StringFilter<"Transaction"> | string
-    date?: DateTimeFilter<"Transaction"> | Date | string
+    userId?: StringFilter<"Transaction"> | string
     createdAt?: DateTimeFilter<"Transaction"> | Date | string
     updatedAt?: DateTimeFilter<"Transaction"> | Date | string
-    userId?: StringFilter<"Transaction"> | string
+    date?: DateTimeFilter<"Transaction"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
@@ -15284,10 +15303,10 @@ export namespace Prisma {
     amount?: SortOrder
     type?: SortOrder
     category?: SortOrder
-    date?: SortOrder
+    userId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    userId?: SortOrder
+    date?: SortOrder
     user?: UserOrderByWithRelationInput
   }
 
@@ -15300,10 +15319,10 @@ export namespace Prisma {
     amount?: FloatFilter<"Transaction"> | number
     type?: StringFilter<"Transaction"> | string
     category?: StringFilter<"Transaction"> | string
-    date?: DateTimeFilter<"Transaction"> | Date | string
+    userId?: StringFilter<"Transaction"> | string
     createdAt?: DateTimeFilter<"Transaction"> | Date | string
     updatedAt?: DateTimeFilter<"Transaction"> | Date | string
-    userId?: StringFilter<"Transaction"> | string
+    date?: DateTimeFilter<"Transaction"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id">
 
@@ -15313,10 +15332,10 @@ export namespace Prisma {
     amount?: SortOrder
     type?: SortOrder
     category?: SortOrder
-    date?: SortOrder
+    userId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    userId?: SortOrder
+    date?: SortOrder
     _count?: TransactionCountOrderByAggregateInput
     _avg?: TransactionAvgOrderByAggregateInput
     _max?: TransactionMaxOrderByAggregateInput
@@ -15333,10 +15352,10 @@ export namespace Prisma {
     amount?: FloatWithAggregatesFilter<"Transaction"> | number
     type?: StringWithAggregatesFilter<"Transaction"> | string
     category?: StringWithAggregatesFilter<"Transaction"> | string
-    date?: DateTimeWithAggregatesFilter<"Transaction"> | Date | string
+    userId?: StringWithAggregatesFilter<"Transaction"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Transaction"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Transaction"> | Date | string
-    userId?: StringWithAggregatesFilter<"Transaction"> | string
+    date?: DateTimeWithAggregatesFilter<"Transaction"> | Date | string
   }
 
   export type RecentActivityWhereInput = {
@@ -15407,14 +15426,14 @@ export namespace Prisma {
     title?: StringFilter<"Note"> | string
     content?: StringFilter<"Note"> | string
     type?: StringFilter<"Note"> | string
-    category?: StringFilter<"Note"> | string
-    tags?: StringNullableListFilter<"Note">
-    isPinned?: BoolFilter<"Note"> | boolean
-    isFavorite?: BoolFilter<"Note"> | boolean
     isArchived?: BoolFilter<"Note"> | boolean
     createdAt?: DateTimeFilter<"Note"> | Date | string
     updatedAt?: DateTimeFilter<"Note"> | Date | string
     userId?: StringFilter<"Note"> | string
+    category?: StringFilter<"Note"> | string
+    tags?: StringNullableListFilter<"Note">
+    isPinned?: BoolFilter<"Note"> | boolean
+    isFavorite?: BoolFilter<"Note"> | boolean
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
@@ -15423,14 +15442,14 @@ export namespace Prisma {
     title?: SortOrder
     content?: SortOrder
     type?: SortOrder
-    category?: SortOrder
-    tags?: SortOrder
-    isPinned?: SortOrder
-    isFavorite?: SortOrder
     isArchived?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
+    category?: SortOrder
+    tags?: SortOrder
+    isPinned?: SortOrder
+    isFavorite?: SortOrder
     user?: UserOrderByWithRelationInput
   }
 
@@ -15442,14 +15461,14 @@ export namespace Prisma {
     title?: StringFilter<"Note"> | string
     content?: StringFilter<"Note"> | string
     type?: StringFilter<"Note"> | string
-    category?: StringFilter<"Note"> | string
-    tags?: StringNullableListFilter<"Note">
-    isPinned?: BoolFilter<"Note"> | boolean
-    isFavorite?: BoolFilter<"Note"> | boolean
     isArchived?: BoolFilter<"Note"> | boolean
     createdAt?: DateTimeFilter<"Note"> | Date | string
     updatedAt?: DateTimeFilter<"Note"> | Date | string
     userId?: StringFilter<"Note"> | string
+    category?: StringFilter<"Note"> | string
+    tags?: StringNullableListFilter<"Note">
+    isPinned?: BoolFilter<"Note"> | boolean
+    isFavorite?: BoolFilter<"Note"> | boolean
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id">
 
@@ -15458,14 +15477,14 @@ export namespace Prisma {
     title?: SortOrder
     content?: SortOrder
     type?: SortOrder
-    category?: SortOrder
-    tags?: SortOrder
-    isPinned?: SortOrder
-    isFavorite?: SortOrder
     isArchived?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
+    category?: SortOrder
+    tags?: SortOrder
+    isPinned?: SortOrder
+    isFavorite?: SortOrder
     _count?: NoteCountOrderByAggregateInput
     _max?: NoteMaxOrderByAggregateInput
     _min?: NoteMinOrderByAggregateInput
@@ -15479,14 +15498,14 @@ export namespace Prisma {
     title?: StringWithAggregatesFilter<"Note"> | string
     content?: StringWithAggregatesFilter<"Note"> | string
     type?: StringWithAggregatesFilter<"Note"> | string
-    category?: StringWithAggregatesFilter<"Note"> | string
-    tags?: StringNullableListFilter<"Note">
-    isPinned?: BoolWithAggregatesFilter<"Note"> | boolean
-    isFavorite?: BoolWithAggregatesFilter<"Note"> | boolean
     isArchived?: BoolWithAggregatesFilter<"Note"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Note"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Note"> | Date | string
     userId?: StringWithAggregatesFilter<"Note"> | string
+    category?: StringWithAggregatesFilter<"Note"> | string
+    tags?: StringNullableListFilter<"Note">
+    isPinned?: BoolWithAggregatesFilter<"Note"> | boolean
+    isFavorite?: BoolWithAggregatesFilter<"Note"> | boolean
   }
 
   export type NoteTemplateWhereInput = {
@@ -15784,6 +15803,7 @@ export namespace Prisma {
     dueDate: string
     dueTime: string
     hasReminder?: boolean
+    reminderSentAt?: Date | string | null
     completed?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -15800,6 +15820,7 @@ export namespace Prisma {
     dueDate: string
     dueTime: string
     hasReminder?: boolean
+    reminderSentAt?: Date | string | null
     completed?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -15816,6 +15837,7 @@ export namespace Prisma {
     dueDate?: StringFieldUpdateOperationsInput | string
     dueTime?: StringFieldUpdateOperationsInput | string
     hasReminder?: BoolFieldUpdateOperationsInput | boolean
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completed?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15832,6 +15854,7 @@ export namespace Prisma {
     dueDate?: StringFieldUpdateOperationsInput | string
     dueTime?: StringFieldUpdateOperationsInput | string
     hasReminder?: BoolFieldUpdateOperationsInput | boolean
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completed?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15848,6 +15871,7 @@ export namespace Prisma {
     dueDate: string
     dueTime: string
     hasReminder?: boolean
+    reminderSentAt?: Date | string | null
     completed?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -15863,6 +15887,7 @@ export namespace Prisma {
     dueDate?: StringFieldUpdateOperationsInput | string
     dueTime?: StringFieldUpdateOperationsInput | string
     hasReminder?: BoolFieldUpdateOperationsInput | boolean
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completed?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15877,6 +15902,7 @@ export namespace Prisma {
     dueDate?: StringFieldUpdateOperationsInput | string
     dueTime?: StringFieldUpdateOperationsInput | string
     hasReminder?: BoolFieldUpdateOperationsInput | boolean
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completed?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -16166,9 +16192,9 @@ export namespace Prisma {
     amount: number
     type: string
     category: string
-    date?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
+    date?: Date | string
     user: UserCreateNestedOneWithoutTransactionsInput
   }
 
@@ -16178,10 +16204,10 @@ export namespace Prisma {
     amount: number
     type: string
     category: string
-    date?: Date | string
+    userId: string
     createdAt?: Date | string
     updatedAt?: Date | string
-    userId: string
+    date?: Date | string
   }
 
   export type TransactionUpdateInput = {
@@ -16190,9 +16216,9 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutTransactionsNestedInput
   }
 
@@ -16202,10 +16228,10 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    userId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TransactionCreateManyInput = {
@@ -16214,10 +16240,10 @@ export namespace Prisma {
     amount: number
     type: string
     category: string
-    date?: Date | string
+    userId: string
     createdAt?: Date | string
     updatedAt?: Date | string
-    userId: string
+    date?: Date | string
   }
 
   export type TransactionUpdateManyMutationInput = {
@@ -16226,9 +16252,9 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TransactionUncheckedUpdateManyInput = {
@@ -16237,10 +16263,10 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    userId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type RecentActivityCreateInput = {
@@ -16310,13 +16336,13 @@ export namespace Prisma {
     title?: string
     content?: string
     type?: string
+    isArchived?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
     category?: string
     tags?: NoteCreatetagsInput | string[]
     isPinned?: boolean
     isFavorite?: boolean
-    isArchived?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
     user: UserCreateNestedOneWithoutNotesInput
   }
 
@@ -16325,14 +16351,14 @@ export namespace Prisma {
     title?: string
     content?: string
     type?: string
-    category?: string
-    tags?: NoteCreatetagsInput | string[]
-    isPinned?: boolean
-    isFavorite?: boolean
     isArchived?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
+    category?: string
+    tags?: NoteCreatetagsInput | string[]
+    isPinned?: boolean
+    isFavorite?: boolean
   }
 
   export type NoteUpdateInput = {
@@ -16340,13 +16366,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
+    isArchived?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: StringFieldUpdateOperationsInput | string
     tags?: NoteUpdatetagsInput | string[]
     isPinned?: BoolFieldUpdateOperationsInput | boolean
     isFavorite?: BoolFieldUpdateOperationsInput | boolean
-    isArchived?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutNotesNestedInput
   }
 
@@ -16355,14 +16381,14 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
-    category?: StringFieldUpdateOperationsInput | string
-    tags?: NoteUpdatetagsInput | string[]
-    isPinned?: BoolFieldUpdateOperationsInput | boolean
-    isFavorite?: BoolFieldUpdateOperationsInput | boolean
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    tags?: NoteUpdatetagsInput | string[]
+    isPinned?: BoolFieldUpdateOperationsInput | boolean
+    isFavorite?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type NoteCreateManyInput = {
@@ -16370,14 +16396,14 @@ export namespace Prisma {
     title?: string
     content?: string
     type?: string
-    category?: string
-    tags?: NoteCreatetagsInput | string[]
-    isPinned?: boolean
-    isFavorite?: boolean
     isArchived?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
+    category?: string
+    tags?: NoteCreatetagsInput | string[]
+    isPinned?: boolean
+    isFavorite?: boolean
   }
 
   export type NoteUpdateManyMutationInput = {
@@ -16385,13 +16411,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
+    isArchived?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: StringFieldUpdateOperationsInput | string
     tags?: NoteUpdatetagsInput | string[]
     isPinned?: BoolFieldUpdateOperationsInput | boolean
     isFavorite?: BoolFieldUpdateOperationsInput | boolean
-    isArchived?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type NoteUncheckedUpdateManyInput = {
@@ -16399,14 +16425,14 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
-    category?: StringFieldUpdateOperationsInput | string
-    tags?: NoteUpdatetagsInput | string[]
-    isPinned?: BoolFieldUpdateOperationsInput | boolean
-    isFavorite?: BoolFieldUpdateOperationsInput | boolean
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    tags?: NoteUpdatetagsInput | string[]
+    isPinned?: BoolFieldUpdateOperationsInput | boolean
+    isFavorite?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type NoteTemplateCreateInput = {
@@ -16795,6 +16821,17 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type SubTaskListRelationFilter = {
     every?: SubTaskWhereInput
     some?: SubTaskWhereInput
@@ -16814,6 +16851,7 @@ export namespace Prisma {
     dueDate?: SortOrder
     dueTime?: SortOrder
     hasReminder?: SortOrder
+    reminderSentAt?: SortOrder
     completed?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -16829,6 +16867,7 @@ export namespace Prisma {
     dueDate?: SortOrder
     dueTime?: SortOrder
     hasReminder?: SortOrder
+    reminderSentAt?: SortOrder
     completed?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -16844,6 +16883,7 @@ export namespace Prisma {
     dueDate?: SortOrder
     dueTime?: SortOrder
     hasReminder?: SortOrder
+    reminderSentAt?: SortOrder
     completed?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -16856,6 +16896,20 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type TaskScalarRelationFilter = {
@@ -16954,17 +17008,6 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
   export type FocusSessionCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
@@ -17060,30 +17103,16 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
-  }
-
   export type TransactionCountOrderByAggregateInput = {
     id?: SortOrder
     title?: SortOrder
     amount?: SortOrder
     type?: SortOrder
     category?: SortOrder
-    date?: SortOrder
+    userId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    userId?: SortOrder
+    date?: SortOrder
   }
 
   export type TransactionAvgOrderByAggregateInput = {
@@ -17096,10 +17125,10 @@ export namespace Prisma {
     amount?: SortOrder
     type?: SortOrder
     category?: SortOrder
-    date?: SortOrder
+    userId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    userId?: SortOrder
+    date?: SortOrder
   }
 
   export type TransactionMinOrderByAggregateInput = {
@@ -17108,10 +17137,10 @@ export namespace Prisma {
     amount?: SortOrder
     type?: SortOrder
     category?: SortOrder
-    date?: SortOrder
+    userId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    userId?: SortOrder
+    date?: SortOrder
   }
 
   export type TransactionSumOrderByAggregateInput = {
@@ -17158,14 +17187,14 @@ export namespace Prisma {
     title?: SortOrder
     content?: SortOrder
     type?: SortOrder
-    category?: SortOrder
-    tags?: SortOrder
-    isPinned?: SortOrder
-    isFavorite?: SortOrder
     isArchived?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
+    category?: SortOrder
+    tags?: SortOrder
+    isPinned?: SortOrder
+    isFavorite?: SortOrder
   }
 
   export type NoteMaxOrderByAggregateInput = {
@@ -17173,13 +17202,13 @@ export namespace Prisma {
     title?: SortOrder
     content?: SortOrder
     type?: SortOrder
-    category?: SortOrder
-    isPinned?: SortOrder
-    isFavorite?: SortOrder
     isArchived?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
+    category?: SortOrder
+    isPinned?: SortOrder
+    isFavorite?: SortOrder
   }
 
   export type NoteMinOrderByAggregateInput = {
@@ -17187,13 +17216,13 @@ export namespace Prisma {
     title?: SortOrder
     content?: SortOrder
     type?: SortOrder
-    category?: SortOrder
-    isPinned?: SortOrder
-    isFavorite?: SortOrder
     isArchived?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
+    category?: SortOrder
+    isPinned?: SortOrder
+    isFavorite?: SortOrder
   }
 
   export type UserNullableScalarRelationFilter = {
@@ -17686,6 +17715,10 @@ export namespace Prisma {
     set?: boolean
   }
 
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
   export type SubTaskUpdateManyWithoutTaskNestedInput = {
     create?: XOR<SubTaskCreateWithoutTaskInput, SubTaskUncheckedCreateWithoutTaskInput> | SubTaskCreateWithoutTaskInput[] | SubTaskUncheckedCreateWithoutTaskInput[]
     connectOrCreate?: SubTaskCreateOrConnectWithoutTaskInput | SubTaskCreateOrConnectWithoutTaskInput[]
@@ -17770,10 +17803,6 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
-  }
-
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null
   }
 
   export type UserUpdateOneRequiredWithoutFocusSessionsNestedInput = {
@@ -17979,12 +18008,37 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel>
     not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
+  }
+
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type NestedFloatFilter<$PrismaModel = never> = {
@@ -17996,17 +18050,6 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
-  }
-
-  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -18039,20 +18082,6 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
-  }
-
-  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type FocusSessionCreateWithoutUserInput = {
@@ -18196,6 +18225,7 @@ export namespace Prisma {
     dueDate: string
     dueTime: string
     hasReminder?: boolean
+    reminderSentAt?: Date | string | null
     completed?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -18211,6 +18241,7 @@ export namespace Prisma {
     dueDate: string
     dueTime: string
     hasReminder?: boolean
+    reminderSentAt?: Date | string | null
     completed?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -18233,9 +18264,9 @@ export namespace Prisma {
     amount: number
     type: string
     category: string
-    date?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
+    date?: Date | string
   }
 
   export type TransactionUncheckedCreateWithoutUserInput = {
@@ -18244,9 +18275,9 @@ export namespace Prisma {
     amount: number
     type: string
     category: string
-    date?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
+    date?: Date | string
   }
 
   export type TransactionCreateOrConnectWithoutUserInput = {
@@ -18264,13 +18295,13 @@ export namespace Prisma {
     title?: string
     content?: string
     type?: string
+    isArchived?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
     category?: string
     tags?: NoteCreatetagsInput | string[]
     isPinned?: boolean
     isFavorite?: boolean
-    isArchived?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type NoteUncheckedCreateWithoutUserInput = {
@@ -18278,13 +18309,13 @@ export namespace Prisma {
     title?: string
     content?: string
     type?: string
+    isArchived?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
     category?: string
     tags?: NoteCreatetagsInput | string[]
     isPinned?: boolean
     isFavorite?: boolean
-    isArchived?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type NoteCreateOrConnectWithoutUserInput = {
@@ -18505,6 +18536,7 @@ export namespace Prisma {
     dueDate?: StringFilter<"Task"> | string
     dueTime?: StringFilter<"Task"> | string
     hasReminder?: BoolFilter<"Task"> | boolean
+    reminderSentAt?: DateTimeNullableFilter<"Task"> | Date | string | null
     completed?: BoolFilter<"Task"> | boolean
     createdAt?: DateTimeFilter<"Task"> | Date | string
     updatedAt?: DateTimeFilter<"Task"> | Date | string
@@ -18536,10 +18568,10 @@ export namespace Prisma {
     amount?: FloatFilter<"Transaction"> | number
     type?: StringFilter<"Transaction"> | string
     category?: StringFilter<"Transaction"> | string
-    date?: DateTimeFilter<"Transaction"> | Date | string
+    userId?: StringFilter<"Transaction"> | string
     createdAt?: DateTimeFilter<"Transaction"> | Date | string
     updatedAt?: DateTimeFilter<"Transaction"> | Date | string
-    userId?: StringFilter<"Transaction"> | string
+    date?: DateTimeFilter<"Transaction"> | Date | string
   }
 
   export type NoteUpsertWithWhereUniqueWithoutUserInput = {
@@ -18566,14 +18598,14 @@ export namespace Prisma {
     title?: StringFilter<"Note"> | string
     content?: StringFilter<"Note"> | string
     type?: StringFilter<"Note"> | string
-    category?: StringFilter<"Note"> | string
-    tags?: StringNullableListFilter<"Note">
-    isPinned?: BoolFilter<"Note"> | boolean
-    isFavorite?: BoolFilter<"Note"> | boolean
     isArchived?: BoolFilter<"Note"> | boolean
     createdAt?: DateTimeFilter<"Note"> | Date | string
     updatedAt?: DateTimeFilter<"Note"> | Date | string
     userId?: StringFilter<"Note"> | string
+    category?: StringFilter<"Note"> | string
+    tags?: StringNullableListFilter<"Note">
+    isPinned?: BoolFilter<"Note"> | boolean
+    isFavorite?: BoolFilter<"Note"> | boolean
   }
 
   export type NoteTemplateUpsertWithWhereUniqueWithoutUserInput = {
@@ -18866,6 +18898,7 @@ export namespace Prisma {
     dueDate: string
     dueTime: string
     hasReminder?: boolean
+    reminderSentAt?: Date | string | null
     completed?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -18881,6 +18914,7 @@ export namespace Prisma {
     dueDate: string
     dueTime: string
     hasReminder?: boolean
+    reminderSentAt?: Date | string | null
     completed?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -18912,6 +18946,7 @@ export namespace Prisma {
     dueDate?: StringFieldUpdateOperationsInput | string
     dueTime?: StringFieldUpdateOperationsInput | string
     hasReminder?: BoolFieldUpdateOperationsInput | boolean
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completed?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -18927,6 +18962,7 @@ export namespace Prisma {
     dueDate?: StringFieldUpdateOperationsInput | string
     dueTime?: StringFieldUpdateOperationsInput | string
     hasReminder?: BoolFieldUpdateOperationsInput | boolean
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completed?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19604,6 +19640,7 @@ export namespace Prisma {
     dueDate: string
     dueTime: string
     hasReminder?: boolean
+    reminderSentAt?: Date | string | null
     completed?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -19615,9 +19652,9 @@ export namespace Prisma {
     amount: number
     type: string
     category: string
-    date?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
+    date?: Date | string
   }
 
   export type NoteCreateManyUserInput = {
@@ -19625,13 +19662,13 @@ export namespace Prisma {
     title?: string
     content?: string
     type?: string
+    isArchived?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
     category?: string
     tags?: NoteCreatetagsInput | string[]
     isPinned?: boolean
     isFavorite?: boolean
-    isArchived?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type NoteTemplateCreateManyUserInput = {
@@ -19798,6 +19835,7 @@ export namespace Prisma {
     dueDate?: StringFieldUpdateOperationsInput | string
     dueTime?: StringFieldUpdateOperationsInput | string
     hasReminder?: BoolFieldUpdateOperationsInput | boolean
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completed?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19813,6 +19851,7 @@ export namespace Prisma {
     dueDate?: StringFieldUpdateOperationsInput | string
     dueTime?: StringFieldUpdateOperationsInput | string
     hasReminder?: BoolFieldUpdateOperationsInput | boolean
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completed?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19828,6 +19867,7 @@ export namespace Prisma {
     dueDate?: StringFieldUpdateOperationsInput | string
     dueTime?: StringFieldUpdateOperationsInput | string
     hasReminder?: BoolFieldUpdateOperationsInput | boolean
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completed?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19839,9 +19879,9 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TransactionUncheckedUpdateWithoutUserInput = {
@@ -19850,9 +19890,9 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TransactionUncheckedUpdateManyWithoutUserInput = {
@@ -19861,9 +19901,9 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type NoteUpdateWithoutUserInput = {
@@ -19871,13 +19911,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
+    isArchived?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: StringFieldUpdateOperationsInput | string
     tags?: NoteUpdatetagsInput | string[]
     isPinned?: BoolFieldUpdateOperationsInput | boolean
     isFavorite?: BoolFieldUpdateOperationsInput | boolean
-    isArchived?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type NoteUncheckedUpdateWithoutUserInput = {
@@ -19885,13 +19925,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
+    isArchived?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: StringFieldUpdateOperationsInput | string
     tags?: NoteUpdatetagsInput | string[]
     isPinned?: BoolFieldUpdateOperationsInput | boolean
     isFavorite?: BoolFieldUpdateOperationsInput | boolean
-    isArchived?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type NoteUncheckedUpdateManyWithoutUserInput = {
@@ -19899,13 +19939,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
+    isArchived?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: StringFieldUpdateOperationsInput | string
     tags?: NoteUpdatetagsInput | string[]
     isPinned?: BoolFieldUpdateOperationsInput | boolean
     isFavorite?: BoolFieldUpdateOperationsInput | boolean
-    isArchived?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type NoteTemplateUpdateWithoutUserInput = {
