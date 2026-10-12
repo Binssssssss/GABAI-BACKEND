@@ -4,6 +4,7 @@ import { firebaseAdminMessaging } from "@/config/firebase-admin";
 
 const CHECK_INTERVAL_MS = 60_000;
 const REMINDER_WINDOW_MS = 30 * 60_000;
+const PHILIPPINE_TIMEZONE = "Asia/Manila";
 
 // Interpret task dates and times in Philippine time (UTC+8).
 function getDeadlineTimestamp(
@@ -35,10 +36,17 @@ function getDeadlineTimestamp(
     const meridiem = match[3]?.toUpperCase();
 
     if (meridiem) {
-      if (hours < 1 || hours > 12) return null;
+      if (hours < 1 || hours > 12) {
+        return null;
+      }
 
-      if (meridiem === "AM" && hours === 12) hours = 0;
-      if (meridiem === "PM" && hours !== 12) hours += 12;
+      if (meridiem === "AM" && hours === 12) {
+        hours = 0;
+      }
+
+      if (meridiem === "PM" && hours !== 12) {
+        hours += 12;
+      }
     }
 
     if (hours > 23 || minutes > 59) {
@@ -56,12 +64,24 @@ function getDeadlineTimestamp(
 let isChecking = false;
 
 export async function checkTaskDeadlineReminders(): Promise<void> {
-  if (isChecking) return;
+  if (isChecking) {
+    console.log(
+      "[DeadlineReminder] Previous check is still running. Skipping.",
+    );
+    return;
+  }
 
   isChecking = true;
 
   try {
     const now = Date.now();
+
+    console.log(
+      `[DeadlineReminder] Checking at ${new Date(now).toISOString()} | ` +
+        `Philippine time: ${new Date(now).toLocaleString("en-PH", {
+          timeZone: PHILIPPINE_TIMEZONE,
+        })}`,
+    );
 
     const tasks = await prisma.task.findMany({
       where: {
@@ -70,6 +90,10 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
         reminderSentAt: null,
       },
     });
+
+    console.log(
+      `[DeadlineReminder] Eligible tasks retrieved: ${tasks.length}`,
+    );
 
     for (const task of tasks) {
       try {
@@ -80,21 +104,37 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
 
         if (deadline === null) {
           console.warn(
-            `[DeadlineReminder] Invalid date/time for task ${task.id}`,
+            `[DeadlineReminder] Invalid date/time for task ${task.id}: ` +
+              `dueDate=${task.dueDate}, dueTime=${task.dueTime}`,
           );
           continue;
         }
 
-        // Send once when the deadline is within the next 30 minutes.
+        const minutesUntilDeadline = Math.round(
+          (deadline - now) / 60_000,
+        );
+
+        console.log(
+          `[DeadlineReminder] Task "${task.title}" (${task.id}) | ` +
+            `Minutes remaining: ${minutesUntilDeadline}`,
+        );
+
+        // Only send before the deadline, within the next 30 minutes.
         if (
           deadline <= now ||
           deadline > now + REMINDER_WINDOW_MS
         ) {
+          console.log(
+            `[DeadlineReminder] Skipped task ${task.id}: ` +
+              "outside the 30-minute reminder window.",
+          );
           continue;
         }
 
         const pushTokens = await prisma.pushToken.findMany({
-          where: { userId: task.userId },
+          where: {
+            userId: task.userId,
+          },
         });
 
         if (pushTokens.length === 0) {
@@ -104,17 +144,27 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
           continue;
         }
 
+        console.log(
+          `[DeadlineReminder] Found ${pushTokens.length} push token(s) ` +
+            `for task ${task.id}.`,
+        );
+
         const response =
           await firebaseAdminMessaging.sendEachForMulticast({
             tokens: pushTokens.map((item) => item.token),
+
             notification: {
               title: "Upcoming Task Deadline",
-              body: `"${task.title}" is due in 30 minutes or less. Don't forget to finish it!`,
+              body:
+                `"${task.title}" is due in 30 minutes or less. ` +
+                "Don't forget to finish it!",
             },
+
             data: {
               type: "task_deadline",
               taskId: task.id,
             },
+
             android: {
               priority: "high",
               notification: {
@@ -124,35 +174,57 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
             },
           });
 
-        // Remove expired or invalid FCM tokens.
-        const invalidTokens = pushTokens
-          .filter((_, index) => {
-            const result = response.responses[index];
+        console.log(
+          `[DeadlineReminder] FCM result for task ${task.id}: ` +
+            `${response.successCount} succeeded, ` +
+            `${response.failureCount} failed.`,
+        );
 
-            return (
-              !result.success &&
-              (
-                result.error?.code ===
-                  "messaging/registration-token-not-registered" ||
-                result.error?.code ===
-                  "messaging/invalid-registration-token"
-              )
-            );
-          })
-          .map((item) => item.token);
+        // Log each failure and collect invalid tokens.
+        const invalidTokens: string[] = [];
+
+        response.responses.forEach((result, index) => {
+          if (result.success) {
+            return;
+          }
+
+          const errorCode = result.error?.code ?? "unknown";
+          const errorMessage =
+            result.error?.message ?? "Unknown Firebase error";
+
+          console.error(
+            `[DeadlineReminder] Token ${index} failed: ` +
+              `${errorCode} - ${errorMessage}`,
+          );
+
+          if (
+            errorCode ===
+              "messaging/registration-token-not-registered" ||
+            errorCode ===
+              "messaging/invalid-registration-token"
+          ) {
+            invalidTokens.push(pushTokens[index].token);
+          }
+        });
 
         if (invalidTokens.length > 0) {
           await prisma.pushToken.deleteMany({
             where: {
-              token: { in: invalidTokens },
+              token: {
+                in: invalidTokens,
+              },
             },
           });
+
+          console.log(
+            `[DeadlineReminder] Removed ${invalidTokens.length} invalid token(s).`,
+          );
         }
 
         // Do not mark the reminder as sent if every push failed.
         if (response.successCount === 0) {
           console.error(
-            `[DeadlineReminder] FCM failed for task ${task.id}`,
+            `[DeadlineReminder] No successful FCM sends for task ${task.id}.`,
           );
           continue;
         }
@@ -162,7 +234,8 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
             userId: task.userId,
             taskId: task.id,
             title: "Upcoming Task Deadline",
-            message: `"${task.title}" is due in 30 minutes or less.`,
+            message:
+              `"${task.title}" is due in 30 minutes or less.`,
             type: "task_deadline",
             time: "30 minutes before deadline",
             icon: "clock",
@@ -171,12 +244,17 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
         });
 
         await prisma.task.update({
-          where: { id: task.id },
-          data: { reminderSentAt: new Date() },
+          where: {
+            id: task.id,
+          },
+          data: {
+            reminderSentAt: new Date(),
+          },
         });
 
         console.log(
-          `[DeadlineReminder] Sent for task ${task.id}; successful devices: ${response.successCount}`,
+          `[DeadlineReminder] Sent for task ${task.id}; ` +
+            `successful devices: ${response.successCount}.`,
         );
       } catch (error) {
         console.error(
@@ -186,7 +264,10 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
       }
     }
   } catch (error) {
-    console.error("[DeadlineReminder] Scheduler check failed:", error);
+    console.error(
+      "[DeadlineReminder] Scheduler check failed:",
+      error,
+    );
   } finally {
     isChecking = false;
   }
@@ -195,9 +276,10 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
 export function startTaskDeadlineReminderScheduler(): void {
   console.log("[DeadlineReminder] Scheduler started.");
 
-  // Check immediately on startup, then every minute.
+  // Run immediately on startup.
   void checkTaskDeadlineReminders();
 
+  // Check again every minute.
   setInterval(() => {
     void checkTaskDeadlineReminders();
   }, CHECK_INTERVAL_MS);
