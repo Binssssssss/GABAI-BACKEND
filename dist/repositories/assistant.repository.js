@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma.js';
+import { prisma } from '../lib/prisma';
 export class AssistantRepository {
     async getUserContext(userId) {
         const [tasks, subjects, recentActivities, focusSessions] = await Promise.all([

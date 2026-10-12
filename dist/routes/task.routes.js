@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
-import { authMiddleware } from "../middleware/auth.middleware.js";
-import { validate } from "../middleware/validation.middleware.js";
-import { taskController } from "../controllers/task.controller.js";
+import { authMiddleware } from "@/middleware/auth.middleware";
+import { validate } from "@/middleware/validation.middleware";
+import { taskController } from "@/controllers/task.controller";
 const router = Router();
 const bulkTaskSchema = z.object({
     taskIds: z
@@ -15,22 +15,23 @@ const bulkTaskSchema = z.object({
 router.get("/", authMiddleware, taskController.getAllTasks.bind(taskController));
 // ===============================
 // GET TASK ANALYTICS
-// IMPORTANT: BEFORE /:id
 // ===============================
 router.get("/analytics", authMiddleware, taskController.getAnalytics.bind(taskController));
 // ===============================
-// GET TASKS BY FILTER
+// GET TASK RECOMMENDATION
 // IMPORTANT: BEFORE /:id
+// ===============================
+router.get("/recommendation", authMiddleware, taskController.getRecommendation.bind(taskController));
+// ===============================
+// GET TASKS BY FILTER
 // ===============================
 router.get("/filter", authMiddleware, taskController.getTasksByFilter.bind(taskController));
 // ===============================
 // GET UPCOMING DEADLINES
-// IMPORTANT: BEFORE /:id
 // ===============================
 router.get("/upcoming", authMiddleware, taskController.getUpcomingDeadlines.bind(taskController));
 // ===============================
 // GET TASKS BY DATE
-// IMPORTANT: BEFORE /:id
 // ===============================
 router.get("/date/:date", authMiddleware, taskController.getTasksByDate.bind(taskController));
 // ===============================
@@ -59,7 +60,6 @@ router.patch("/:id/subtasks/:subTaskId", authMiddleware, taskController.updateSu
 router.patch("/:id/reschedule", authMiddleware, taskController.rescheduleTask.bind(taskController));
 // ===============================
 // GET TASK BY ID
-// IMPORTANT: KEEP THIS LAST
 // ===============================
 router.get("/:id", authMiddleware, taskController.getTaskById.bind(taskController));
 // ===============================

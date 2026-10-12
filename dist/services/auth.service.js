@@ -1,12 +1,12 @@
 import bcrypt from "bcryptjs";
 import { randomUUID } from "node:crypto";
-import { env } from "../config/env.js";
-import { firebaseAdminAuth } from "../config/firebase-admin.js";
-import { authRepository } from "../repositories/auth.repository.js";
-import { userRepository } from "../repositories/user.repository.js";
-import { sendEmail } from "./email.service.js";
-import { AppError } from "../utils/response.js";
-import { generateAccessToken, generateRefreshToken, verifyAccessToken, } from "../utils/jwt.js";
+import { env } from "@/config/env";
+import { firebaseAdminAuth } from "@/config/firebase-admin";
+import { authRepository } from "@/repositories/auth.repository";
+import { userRepository } from "@/repositories/user.repository";
+import { sendEmail } from "@/services/email.service";
+import { AppError } from "@/utils/response";
+import { generateAccessToken, generateRefreshToken, verifyAccessToken, } from "@/utils/jwt";
 const SALT_ROUNDS = 10;
 export class AuthService {
     async register(input) {

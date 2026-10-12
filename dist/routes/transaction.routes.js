@@ -1,6 +1,6 @@
 import { Router } from "express";
-import * as transactionController from "../controllers/transaction.controller.js";
-import { authMiddleware } from "../middleware/auth.middleware.js";
+import * as transactionController from "@/controllers/transaction.controller";
+import { authMiddleware } from "@/middleware/auth.middleware";
 const router = Router();
 router.use(authMiddleware);
 router.get("/", transactionController.getTransactions);

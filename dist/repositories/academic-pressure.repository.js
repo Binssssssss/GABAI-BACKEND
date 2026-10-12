@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma.js";
+import { prisma } from "../lib/prisma";
 export const academicPressureRepository = {
     async getStudentTasks(userId) {
         return prisma.task.findMany({

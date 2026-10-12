@@ -1,5 +1,5 @@
-import { verifyAccessToken } from "../utils/jwt.js";
-import { sendError } from "../utils/response.js";
+import { verifyAccessToken } from "@/utils/jwt";
+import { sendError } from "@/utils/response";
 export function authMiddleware(req, res, next) {
     const header = req.get("authorization");
     if (!header || !header.startsWith("Bearer ")) {

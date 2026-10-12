@@ -1,4 +1,4 @@
-import { sendEmail } from '../services/email.service.js';
+import { sendEmail } from '@/services/email.service';
 export async function testEmail(req, res) {
     try {
         const { email } = req.body;

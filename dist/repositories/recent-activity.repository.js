@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma.js";
+import { prisma } from "@/lib/prisma";
 export const recentActivityRepository = {
     async getRecentActivities(userId, limit = 5) {
         return prisma.recentActivity.findMany({

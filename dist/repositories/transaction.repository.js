@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma.js';
+import { prisma } from '../lib/prisma';
 export const transactionRepository = {
     create: async (userId, data) => {
         return prisma.transaction.create({

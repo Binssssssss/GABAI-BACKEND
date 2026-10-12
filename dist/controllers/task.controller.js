@@ -1,4 +1,4 @@
-import { taskService, } from "../services/task.service.js";
+import { taskService, } from "../services/task.service";
 export class TaskController {
     // ===============================
     // GET ALL TASKS

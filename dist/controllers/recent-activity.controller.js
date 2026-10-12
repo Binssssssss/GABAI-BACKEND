@@ -1,5 +1,5 @@
-import { recentActivityService } from "../services/recent-activity.service.js";
-import { asyncHandler } from "../utils/helper.js";
+import { recentActivityService } from "@/services/recent-activity.service";
+import { asyncHandler } from "@/utils/helper";
 export const getRecentActivities = asyncHandler(async (req, res) => {
     const userId = req.user?.id;
     if (!userId) {

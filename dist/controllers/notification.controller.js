@@ -1,4 +1,4 @@
-import * as notificationService from "../services/notification.service.js";
+import * as notificationService from "@/services/notification.service";
 export const getNotifications = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -125,14 +125,23 @@ export const deleteNotification = async (req, res) => {
 export const registerPushToken = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { token, platform } = req.body;
-        if (!token) {
+        const { token, platform } = req.body ?? {};
+        if (typeof token !== "string" ||
+            token.trim().length === 0) {
             return res.status(400).json({
                 success: false,
-                message: "Push token is required.",
+                message: "A valid push token is required.",
             });
         }
-        const pushToken = await notificationService.registerPushToken(userId, token, platform || "android");
+        const supportedPlatforms = ["android", "ios"];
+        if (platform !== undefined &&
+            !supportedPlatforms.includes(platform)) {
+            return res.status(400).json({
+                success: false,
+                message: "Unsupported platform.",
+            });
+        }
+        const pushToken = await notificationService.registerPushToken(userId, token.trim(), platform ?? "android");
         return res.status(200).json({
             success: true,
             message: "Push token registered successfully.",

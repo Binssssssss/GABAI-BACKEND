@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { prisma } from '../lib/prisma.js';
+import { prisma } from '@/lib/prisma';
 export const subjectRepository = {
     /**
      * Get all subjects belonging to a specific user.

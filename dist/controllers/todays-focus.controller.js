@@ -1,5 +1,5 @@
-import { todaysFocusService } from "../services/todays-focus.service.js";
-import { asyncHandler } from "../utils/helper.js";
+import { todaysFocusService } from "@/services/todays-focus.service";
+import { asyncHandler } from "@/utils/helper";
 export const getTodaysFocus = asyncHandler(async (req, res) => {
     const userId = req.user?.id;
     if (!userId) {

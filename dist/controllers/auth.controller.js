@@ -1,5 +1,5 @@
-import { authService } from "../services/auth.service.js";
-import { asyncHandler } from "../utils/helper.js";
+import { authService } from "@/services/auth.service";
+import { asyncHandler } from "@/utils/helper";
 export const register = asyncHandler(async (req, res) => {
     const user = await authService.register(req.body);
     return res.status(201).json(user);

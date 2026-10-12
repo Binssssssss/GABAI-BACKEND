@@ -1,5 +1,5 @@
-import { smartReminderService } from "../services/smart-reminder.service.js";
-import { asyncHandler } from "../utils/helper.js";
+import { smartReminderService } from "@/services/smart-reminder.service";
+import { asyncHandler } from "@/utils/helper";
 export const getSmartReminder = asyncHandler(async (req, res) => {
     const userId = req.user?.id;
     if (!userId) {

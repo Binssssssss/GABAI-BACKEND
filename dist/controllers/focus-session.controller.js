@@ -1,5 +1,5 @@
-import { focusSessionService } from "../services/focus-session.service.js";
-import { sendError, sendSuccess } from "../utils/response.js";
+import { focusSessionService } from "../services/focus-session.service";
+import { sendError, sendSuccess } from "../utils/response";
 class FocusSessionController {
     /**
      * GET /api/focus-sessions/current

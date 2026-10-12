@@ -1,4 +1,4 @@
-import { createTransaction as createTransactionService, getTransactions as getTransactionsService, getTransaction as getTransactionService, updateTransaction as updateTransactionService, deleteTransaction as deleteTransactionService, getWalletBalance as getWalletBalanceService, } from "../services/transaction.service.js";
+import { createTransaction as createTransactionService, getTransactions as getTransactionsService, getTransaction as getTransactionService, updateTransaction as updateTransactionService, deleteTransaction as deleteTransactionService, getWalletBalance as getWalletBalanceService, } from "../services/transaction.service";
 export async function createTransaction(req, res) {
     try {
         const userId = req.user?.id;

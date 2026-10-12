@@ -1,4 +1,4 @@
-import { recentActivityRepository } from "../repositories/recent-activity.repository.js";
+import { recentActivityRepository } from "@/repositories/recent-activity.repository";
 export const recentActivityService = {
     async getRecentActivities(userId) {
         const activities = await recentActivityRepository.getRecentActivities(userId, 5);

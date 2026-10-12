@@ -1,4 +1,4 @@
-import { assistantRepository } from '../repositories/assistant.repository.js';
+import { assistantRepository } from '../repositories/assistant.repository';
 export class AssistantService {
     async chat(userId, data) {
         const message = data.message.trim();

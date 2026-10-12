@@ -1,3 +1,4 @@
+
 import { Router } from "express";
 import { z } from "zod";
 
@@ -25,7 +26,6 @@ router.get(
 
 // ===============================
 // GET TASK ANALYTICS
-// IMPORTANT: BEFORE /:id
 // ===============================
 
 router.get(
@@ -35,8 +35,18 @@ router.get(
 );
 
 // ===============================
-// GET TASKS BY FILTER
+// GET TASK RECOMMENDATION
 // IMPORTANT: BEFORE /:id
+// ===============================
+
+router.get(
+  "/recommendation",
+  authMiddleware,
+  taskController.getRecommendation.bind(taskController),
+);
+
+// ===============================
+// GET TASKS BY FILTER
 // ===============================
 
 router.get(
@@ -47,7 +57,6 @@ router.get(
 
 // ===============================
 // GET UPCOMING DEADLINES
-// IMPORTANT: BEFORE /:id
 // ===============================
 
 router.get(
@@ -58,7 +67,6 @@ router.get(
 
 // ===============================
 // GET TASKS BY DATE
-// IMPORTANT: BEFORE /:id
 // ===============================
 
 router.get(
@@ -131,7 +139,6 @@ router.patch(
 
 // ===============================
 // GET TASK BY ID
-// IMPORTANT: KEEP THIS LAST
 // ===============================
 
 router.get(

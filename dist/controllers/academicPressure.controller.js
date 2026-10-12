@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma.js";
+import { prisma } from "../lib/prisma";
 export const getAcademicPressure = async (req, res) => {
     try {
         const userId = String(req.user?.id);

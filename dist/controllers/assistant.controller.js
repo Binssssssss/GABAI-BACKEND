@@ -1,4 +1,4 @@
-import { assistantService } from '../services/assistant.service.js';
+import { assistantService } from '../services/assistant.service';
 export class AssistantController {
     async chat(req, res, next) {
         try {

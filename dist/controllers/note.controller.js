@@ -1,4 +1,4 @@
-import * as noteRepository from '../repositories/note.repository.js';
+import * as noteRepository from '../repositories/note.repository';
 /**
  * Create Note
  */

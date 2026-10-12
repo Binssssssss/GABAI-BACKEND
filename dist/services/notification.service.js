@@ -1,4 +1,4 @@
-import { notificationRepository } from "../repositories/notification.repository.js";
+import { notificationRepository } from "@/repositories/notification.repository";
 export const getNotificationsByUser = async (userId) => {
     const notifications = await notificationRepository.getUserNotifications(userId);
     return notifications.map((notification) => ({

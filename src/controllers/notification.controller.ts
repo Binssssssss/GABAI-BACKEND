@@ -206,27 +206,42 @@ export const deleteNotification = async (
     });
   }
 };
+
 export const registerPushToken = async (
   req: Request,
   res: Response
 ) => {
   try {
     const userId = req.user.id;
+    const { token, platform } = req.body ?? {};
 
-    const { token, platform } = req.body;
-
-    if (!token) {
+    if (
+      typeof token !== "string" ||
+      token.trim().length === 0
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Push token is required.",
+        message: "A valid push token is required.",
+      });
+    }
+
+    const supportedPlatforms = ["android", "ios"];
+
+    if (
+      platform !== undefined &&
+      !supportedPlatforms.includes(platform)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Unsupported platform.",
       });
     }
 
     const pushToken =
       await notificationService.registerPushToken(
         userId,
-        token,
-        platform || "android"
+        token.trim(),
+        platform ?? "android"
       );
 
     return res.status(200).json({
@@ -246,3 +261,4 @@ export const registerPushToken = async (
     });
   }
 };
+

@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma.js";
+import { prisma } from "../lib/prisma";
 class FocusSessionRepository {
     async getActiveSession(userId) {
         return prisma.focusSession.findFirst({

@@ -1,4 +1,4 @@
-import { subjectService } from '../services/subject.service.js';
+import { subjectService } from '@/services/subject.service';
 export class SubjectController {
     async getSubjects(req, res, next) {
         try {
