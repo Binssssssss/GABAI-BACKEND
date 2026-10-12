@@ -1,4 +1,4 @@
-import { dashboardRepository, } from "../repositories/dashboard.repository";
+import { dashboardRepository, } from "../repositories/dashboard.repository.js";
 export class DashboardService {
     async getDashboard(userId) {
         const today = this.getTodayDate();

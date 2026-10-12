@@ -1,5 +1,5 @@
-import { subjectRepository } from '@/repositories/subject.repository';
-import { AppError } from '@/utils/response';
+import { subjectRepository } from '../repositories/subject.repository.js';
+import { AppError } from '../utils/response.js';
 export class SubjectService {
     async getSubjects(userId) {
         return subjectRepository.findAllByUser(userId);

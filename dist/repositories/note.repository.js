@@ -1,4 +1,4 @@
-import { prisma } from '../config/prisma';
+import { prisma } from '../config/prisma.js';
 export const createNote = async (userId, data) => {
     return prisma.note.create({
         data: {

@@ -1,5 +1,5 @@
-import { dashboardService, } from "../services/dashboard.service";
-import { sendSuccess, sendError, } from "../utils/response";
+import { dashboardService, } from "../services/dashboard.service.js";
+import { sendSuccess, sendError, } from "../utils/response.js";
 export class DashboardController {
     async getDashboard(req, res, next) {
         try {

@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { authMiddleware } from "../middleware/auth.middleware";
-import { focusSessionController } from "../controllers/focus-session.controller";
+import { authMiddleware } from "../middleware/auth.middleware.js";
+import { focusSessionController } from "../controllers/focus-session.controller.js";
 const router = Router();
 router.get("/stats", authMiddleware, focusSessionController.getFocusStats);
 router.get("/history", authMiddleware, focusSessionController.getSessionHistory);

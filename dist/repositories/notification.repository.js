@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../lib/prisma.js";
 export const notificationRepository = {
     async getUserNotifications(userId) {
         return prisma.notification.findMany({

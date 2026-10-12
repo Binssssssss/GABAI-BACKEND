@@ -1,4 +1,4 @@
-import { taskRepository } from "../repositories/task.repository";
+import { taskRepository } from "../repositories/task.repository.js";
 class AppError extends Error {
     statusCode;
     constructor(message, statusCode) {
@@ -34,14 +34,12 @@ function formatCalendarEvent(task) {
         description: task.description,
         subject: task.subject,
         date: task.dueDate,
-        time: task.dueTime &&
-            task.dueTime.trim() !== ""
+        time: task.dueTime && task.dueTime.trim() !== ""
             ? task.dueTime
             : null,
         priority: task.priority,
         category: task.subject,
-        isAllDay: !task.dueTime ||
-            task.dueTime.trim() === "",
+        isAllDay: !task.dueTime || task.dueTime.trim() === "",
         duration: null,
         checklist,
         progress: calculateProgress(checklist),
@@ -60,6 +58,63 @@ function validateTaskId(taskId) {
     }
 }
 // ===============================
+// NORMALIZE SUBTASKS
+// ===============================
+function normalizeSubTasks(data) {
+    const rawData = data;
+    const rawSubTasks = rawData.subTasks;
+    // Do not create subtasks when none were provided.
+    if (!Array.isArray(rawSubTasks)) {
+        return data;
+    }
+    const validSubTasks = rawSubTasks
+        .filter((item) => typeof item === "object" && item !== null)
+        .map((item) => {
+        const title = typeof item.title === "string"
+            ? item.title.trim()
+            : typeof item.text === "string"
+                ? item.text.trim()
+                : typeof item.label === "string"
+                    ? item.label.trim()
+                    : "";
+        return {
+            title,
+            completed: typeof item.completed === "boolean"
+                ? item.completed
+                : false,
+        };
+    })
+        .filter((item) => item.title.length > 0);
+    return {
+        ...data,
+        subTasks: validSubTasks,
+    };
+}
+// ===============================
+// RECOMMENDATION HELPERS
+// ===============================
+const PRIORITY_WEIGHT = {
+    High: 3,
+    Medium: 2,
+    Low: 1,
+};
+function getDueTimestamp(task) {
+    const date = typeof task.dueDate === "string"
+        ? task.dueDate.trim()
+        : "";
+    if (!date) {
+        return Number.MAX_SAFE_INTEGER;
+    }
+    const time = typeof task.dueTime === "string" &&
+        task.dueTime.trim() !== ""
+        ? task.dueTime.trim()
+        : "23:59";
+    const timestamp = new Date(`${date}T${time}:00`).getTime();
+    return Number.isNaN(timestamp)
+        ? Number.MAX_SAFE_INTEGER
+        : timestamp;
+}
+// ===============================
 // TASK SERVICE
 // ===============================
 export class TaskService {
@@ -67,8 +122,26 @@ export class TaskService {
     // GET ALL TASKS
     // ===============================
     async getAllTasks(userId, filters) {
-        const tasks = await taskRepository.findAllByUser(userId, filters);
-        return tasks;
+        return taskRepository.findAllByUser(userId, filters);
+    }
+    // ===============================
+    // GET TASK RECOMMENDATION
+    // ===============================
+    async getRecommendation(userId) {
+        const tasks = await taskRepository.findAllByUser(userId);
+        const pendingTasks = tasks.filter((task) => !task.completed);
+        if (pendingTasks.length === 0) {
+            return null;
+        }
+        pendingTasks.sort((a, b) => {
+            const dueDifference = getDueTimestamp(a) - getDueTimestamp(b);
+            if (dueDifference !== 0) {
+                return dueDifference;
+            }
+            return ((PRIORITY_WEIGHT[b.priority] ?? 0) -
+                (PRIORITY_WEIGHT[a.priority] ?? 0));
+        });
+        return pendingTasks[0];
     }
     // ===============================
     // GET TASKS BY FILTER
@@ -104,15 +177,10 @@ export class TaskService {
     // ===============================
     async getTaskById(taskId, userId) {
         const normalizedTaskId = taskId?.trim();
-        console.log("========== GET TASK DEBUG ==========");
-        console.log("Task ID:", normalizedTaskId);
-        console.log("User ID:", userId);
-        console.log("====================================");
         if (!normalizedTaskId) {
             throw new AppError("Task ID is required.", 400);
         }
         const task = await taskRepository.findById(normalizedTaskId, userId);
-        console.log("Repository result:", task);
         if (!task) {
             console.warn(`[TaskService] Task not found. taskId=${normalizedTaskId}, userId=${userId}`);
             throw new AppError("Task not found.", 404);
@@ -123,8 +191,20 @@ export class TaskService {
     // CREATE TASK
     // ===============================
     async createTask(userId, data) {
-        const task = await taskRepository.create(userId, data);
-        return task;
+        if (!userId ||
+            typeof userId !== "string" ||
+            !userId.trim()) {
+            throw new AppError("User ID is required.", 400);
+        }
+        if (!data || typeof data !== "object") {
+            throw new AppError("Task data is required.", 400);
+        }
+        if (typeof data.title !== "string" ||
+            data.title.trim().length === 0) {
+            throw new AppError("Task title is required.", 400);
+        }
+        const normalizedData = normalizeSubTasks(data);
+        return taskRepository.create(userId.trim(), normalizedData);
     }
     // ===============================
     // UPDATE TASK
@@ -256,90 +336,49 @@ export class TaskService {
     async getAnalytics(userId) {
         const analytics = await taskRepository.getAnalytics(userId);
         const { totalTasks, completedTasks, pendingTasks, tasks, } = analytics;
-        // ===============================
-        // COMPLETION RATE
-        // ===============================
         const completionRate = totalTasks > 0
-            ? Math.round((completedTasks / totalTasks) *
-                100)
+            ? Math.round((completedTasks / totalTasks) * 100)
             : 0;
-        // ===============================
         // CURRENT WEEK
-        // ===============================
         const today = new Date();
         const startOfWeek = new Date(today);
         const currentDay = startOfWeek.getDay();
-        const difference = currentDay === 0
-            ? -6
-            : 1 - currentDay;
-        startOfWeek.setDate(startOfWeek.getDate() +
-            difference);
+        const difference = currentDay === 0 ? -6 : 1 - currentDay;
+        startOfWeek.setDate(startOfWeek.getDate() + difference);
         startOfWeek.setHours(0, 0, 0, 0);
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(endOfWeek.getDate() + 6);
         endOfWeek.setHours(23, 59, 59, 999);
-        // ===============================
         // WEEKLY COMPLETION
-        // ===============================
         const weeklyCompletion = [
-            {
-                day: "Mon",
-                count: 0,
-            },
-            {
-                day: "Tue",
-                count: 0,
-            },
-            {
-                day: "Wed",
-                count: 0,
-            },
-            {
-                day: "Thu",
-                count: 0,
-            },
-            {
-                day: "Fri",
-                count: 0,
-            },
-            {
-                day: "Sat",
-                count: 0,
-            },
-            {
-                day: "Sun",
-                count: 0,
-            },
+            { day: "Mon", count: 0 },
+            { day: "Tue", count: 0 },
+            { day: "Wed", count: 0 },
+            { day: "Thu", count: 0 },
+            { day: "Fri", count: 0 },
+            { day: "Sat", count: 0 },
+            { day: "Sun", count: 0 },
         ];
         for (const task of tasks) {
-            if (!task.completed ||
-                !task.dueDate) {
+            if (!task.completed || !task.dueDate) {
                 continue;
             }
             const dueDate = new Date(`${task.dueDate}T00:00:00`);
-            if (dueDate >= startOfWeek &&
-                dueDate <= endOfWeek) {
+            if (dueDate >= startOfWeek && dueDate <= endOfWeek) {
                 const dayIndex = dueDate.getDay();
-                const weekIndex = dayIndex === 0
-                    ? 6
-                    : dayIndex - 1;
+                const weekIndex = dayIndex === 0 ? 6 : dayIndex - 1;
                 weeklyCompletion[weekIndex].count += 1;
             }
         }
-        // ===============================
         // PREVIOUS WEEK
-        // ===============================
         const previousWeekStart = new Date(startOfWeek);
-        previousWeekStart.setDate(previousWeekStart.getDate() -
-            7);
+        previousWeekStart.setDate(previousWeekStart.getDate() - 7);
         const previousWeekEnd = new Date(startOfWeek);
-        previousWeekEnd.setDate(previousWeekEnd.getDate() -
-            1);
+        previousWeekEnd.setDate(previousWeekEnd.getDate() - 1);
         previousWeekEnd.setHours(23, 59, 59, 999);
         let previousWeekCompleted = 0;
         for (const task of tasks) {
-            if (!task.completed ||
-                !task.dueDate) {
+            if (!task.completed || !task.dueDate) {
                 continue;
             }
             const dueDate = new Date(`${task.dueDate}T00:00:00`);
@@ -348,27 +387,19 @@ export class TaskService {
                 previousWeekCompleted += 1;
             }
         }
-        // ===============================
         // CURRENT WEEK TOTAL
-        // ===============================
         const currentWeekCompleted = weeklyCompletion.reduce((total, item) => total + item.count, 0);
-        // ===============================
         // WEEKLY PRODUCTIVITY
-        // ===============================
         let weeklyProductivity = 0;
         if (previousWeekCompleted > 0) {
-            weeklyProductivity =
-                Math.round(((currentWeekCompleted -
-                    previousWeekCompleted) /
-                    previousWeekCompleted) *
-                    100);
+            weeklyProductivity = Math.round(((currentWeekCompleted - previousWeekCompleted) /
+                previousWeekCompleted) *
+                100);
         }
         else if (currentWeekCompleted > 0) {
             weeklyProductivity = 100;
         }
-        // ===============================
         // BADGES
-        // ===============================
         const badges = [];
         if (completedTasks >= 5) {
             badges.push({
@@ -388,8 +419,7 @@ export class TaskService {
                 type: "completion",
             });
         }
-        if (totalTasks > 0 &&
-            pendingTasks === 0) {
+        if (totalTasks > 0 && pendingTasks === 0) {
             badges.push({
                 id: "all-complete",
                 title: "All Clear",
@@ -398,9 +428,6 @@ export class TaskService {
                 type: "completion",
             });
         }
-        // ===============================
-        // RETURN ANALYTICS
-        // ===============================
         return {
             totalTasks,
             completedTasks,

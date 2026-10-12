@@ -1,4 +1,4 @@
-import { transactionRepository } from "../repositories/transaction.repository";
+import { transactionRepository } from "../repositories/transaction.repository.js";
 const mapTransaction = (transaction) => ({
     id: transaction.id,
     title: transaction.title,

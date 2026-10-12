@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../lib/prisma.js";
 export const subjectProgressRepository = {
     async getSubjectProgress(userId) {
         const tasks = await prisma.task.findMany({

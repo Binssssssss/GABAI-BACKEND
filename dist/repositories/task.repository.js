@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
 export class TaskRepository {
     // ===============================
     // GET ALL TASKS
@@ -41,12 +41,8 @@ export class TaskRepository {
                 subTasks: true,
             },
             orderBy: [
-                {
-                    dueDate: "asc",
-                },
-                {
-                    dueTime: "asc",
-                },
+                { dueDate: "asc" },
+                { dueTime: "asc" },
             ],
         });
     }
@@ -54,25 +50,15 @@ export class TaskRepository {
     // GET TASKS BY FILTER
     // ===============================
     async findByFilter(userId, filter) {
-        const today = new Date()
-            .toISOString()
-            .split("T")[0];
+        const today = new Date().toISOString().split("T")[0];
         switch (filter.toLowerCase()) {
             case "all":
                 return prisma.task.findMany({
-                    where: {
-                        userId,
-                    },
-                    include: {
-                        subTasks: true,
-                    },
+                    where: { userId },
+                    include: { subTasks: true },
                     orderBy: [
-                        {
-                            dueDate: "asc",
-                        },
-                        {
-                            dueTime: "asc",
-                        },
+                        { dueDate: "asc" },
+                        { dueTime: "asc" },
                     ],
                 });
             case "today":
@@ -81,32 +67,20 @@ export class TaskRepository {
                         userId,
                         dueDate: today,
                     },
-                    include: {
-                        subTasks: true,
-                    },
-                    orderBy: {
-                        dueTime: "asc",
-                    },
+                    include: { subTasks: true },
+                    orderBy: { dueTime: "asc" },
                 });
             case "upcoming":
                 return prisma.task.findMany({
                     where: {
                         userId,
                         completed: false,
-                        dueDate: {
-                            gt: today,
-                        },
+                        dueDate: { gt: today },
                     },
-                    include: {
-                        subTasks: true,
-                    },
+                    include: { subTasks: true },
                     orderBy: [
-                        {
-                            dueDate: "asc",
-                        },
-                        {
-                            dueTime: "asc",
-                        },
+                        { dueDate: "asc" },
+                        { dueTime: "asc" },
                     ],
                 });
             case "completed":
@@ -115,16 +89,10 @@ export class TaskRepository {
                         userId,
                         completed: true,
                     },
-                    include: {
-                        subTasks: true,
-                    },
+                    include: { subTasks: true },
                     orderBy: [
-                        {
-                            dueDate: "asc",
-                        },
-                        {
-                            dueTime: "asc",
-                        },
+                        { dueDate: "asc" },
+                        { dueTime: "asc" },
                     ],
                 });
             case "pending":
@@ -133,16 +101,10 @@ export class TaskRepository {
                         userId,
                         completed: false,
                     },
-                    include: {
-                        subTasks: true,
-                    },
+                    include: { subTasks: true },
                     orderBy: [
-                        {
-                            dueDate: "asc",
-                        },
-                        {
-                            dueTime: "asc",
-                        },
+                        { dueDate: "asc" },
+                        { dueTime: "asc" },
                     ],
                 });
             case "overdue":
@@ -150,20 +112,12 @@ export class TaskRepository {
                     where: {
                         userId,
                         completed: false,
-                        dueDate: {
-                            lt: today,
-                        },
+                        dueDate: { lt: today },
                     },
-                    include: {
-                        subTasks: true,
-                    },
+                    include: { subTasks: true },
                     orderBy: [
-                        {
-                            dueDate: "asc",
-                        },
-                        {
-                            dueTime: "asc",
-                        },
+                        { dueDate: "asc" },
+                        { dueTime: "asc" },
                     ],
                 });
             default:
@@ -175,19 +129,13 @@ export class TaskRepository {
     // ===============================
     async findById(id, userId) {
         const task = await prisma.task.findUnique({
-            where: {
-                id,
-            },
-            include: {
-                subTasks: true,
-            },
+            where: { id },
+            include: { subTasks: true },
         });
-        // Task ID does not exist at all
         if (!task) {
             console.warn(`[TaskRepository] Task ID does not exist: ${id}`);
             return null;
         }
-        // Task exists but belongs to another user
         if (task.userId !== userId) {
             console.warn(`[TaskRepository] Task ownership mismatch. taskId=${id}, requestedUser=${userId}, owner=${task.userId}`);
             return null;
@@ -203,21 +151,49 @@ export class TaskRepository {
                 userId,
                 dueDate: date,
             },
-            include: {
-                subTasks: true,
-            },
-            orderBy: {
-                dueTime: "asc",
-            },
+            include: { subTasks: true },
+            orderBy: { dueTime: "asc" },
         });
     }
     // ===============================
     // CREATE TASK
     // ===============================
     async create(userId, data) {
+        // Validate the required task title.
+        const title = typeof data.title === "string"
+            ? data.title.trim()
+            : "";
+        if (!title) {
+            const error = new Error("Task title is required.");
+            Object.assign(error, { statusCode: 400 });
+            throw error;
+        }
+        // Normalize subtask entries before sending them to Prisma.
+        // Supports common frontend fields: title, text, or label.
+        const rawSubTasks = data.subTasks;
+        const validSubTasks = Array.isArray(rawSubTasks)
+            ? rawSubTasks
+                .filter((item) => typeof item === "object" && item !== null)
+                .map((item) => {
+                const subTaskTitle = typeof item.title === "string"
+                    ? item.title.trim()
+                    : typeof item.text === "string"
+                        ? item.text.trim()
+                        : typeof item.label === "string"
+                            ? item.label.trim()
+                            : "";
+                return {
+                    title: subTaskTitle,
+                    completed: typeof item.completed === "boolean"
+                        ? item.completed
+                        : false,
+                };
+            })
+                .filter((item) => item.title.length > 0)
+            : [];
         return prisma.task.create({
             data: {
-                title: data.title,
+                title,
                 description: data.description ?? "",
                 subject: data.subject,
                 priority: data.priority,
@@ -226,12 +202,12 @@ export class TaskRepository {
                 hasReminder: data.hasReminder ?? false,
                 completed: data.completed ?? false,
                 userId,
-                subTasks: {
-                    create: data.subTasks?.map((subTask) => ({
-                        title: subTask.title,
-                        completed: subTask.completed ?? false,
-                    })) ?? [],
-                },
+                // Never create a subtask with a missing or blank title.
+                ...(validSubTasks.length > 0 && {
+                    subTasks: {
+                        create: validSubTasks,
+                    },
+                }),
             },
             include: {
                 subTasks: true,
@@ -243,17 +219,13 @@ export class TaskRepository {
     // ===============================
     async update(id, userId, data) {
         const task = await prisma.task.findUnique({
-            where: {
-                id,
-            },
+            where: { id },
         });
         if (!task || task.userId !== userId) {
             return null;
         }
         return prisma.task.update({
-            where: {
-                id,
-            },
+            where: { id },
             data: {
                 ...(data.title !== undefined && {
                     title: data.title,
@@ -280,9 +252,7 @@ export class TaskRepository {
                     completed: data.completed,
                 }),
             },
-            include: {
-                subTasks: true,
-            },
+            include: { subTasks: true },
         });
     }
     // ===============================
@@ -290,17 +260,13 @@ export class TaskRepository {
     // ===============================
     async delete(id, userId) {
         const task = await prisma.task.findUnique({
-            where: {
-                id,
-            },
+            where: { id },
         });
         if (!task || task.userId !== userId) {
             return null;
         }
         return prisma.task.delete({
-            where: {
-                id,
-            },
+            where: { id },
         });
     }
     // ===============================
@@ -312,21 +278,13 @@ export class TaskRepository {
                 userId,
                 completed: false,
                 dueDate: {
-                    gte: new Date()
-                        .toISOString()
-                        .split("T")[0],
+                    gte: new Date().toISOString().split("T")[0],
                 },
             },
-            include: {
-                subTasks: true,
-            },
+            include: { subTasks: true },
             orderBy: [
-                {
-                    dueDate: "asc",
-                },
-                {
-                    dueTime: "asc",
-                },
+                { dueDate: "asc" },
+                { dueTime: "asc" },
             ],
             take: limit,
         });
@@ -336,26 +294,20 @@ export class TaskRepository {
     // ===============================
     async reschedule(id, userId, data) {
         const task = await prisma.task.findUnique({
-            where: {
-                id,
-            },
+            where: { id },
         });
         if (!task || task.userId !== userId) {
             return null;
         }
         return prisma.task.update({
-            where: {
-                id,
-            },
+            where: { id },
             data: {
                 dueDate: data.dueDate,
                 ...(data.dueTime !== undefined && {
                     dueTime: data.dueTime,
                 }),
             },
-            include: {
-                subTasks: true,
-            },
+            include: { subTasks: true },
         });
     }
     // ===============================
@@ -366,18 +318,14 @@ export class TaskRepository {
             where: {
                 id: subTaskId,
                 taskId,
-                task: {
-                    userId,
-                },
+                task: { userId },
             },
         });
         if (!subTask) {
             return null;
         }
         return prisma.subTask.update({
-            where: {
-                id: subTaskId,
-            },
+            where: { id: subTaskId },
             data: {
                 completed: data.completed,
             },
@@ -389,9 +337,7 @@ export class TaskRepository {
     async bulkComplete(taskIds, userId) {
         return prisma.task.updateMany({
             where: {
-                id: {
-                    in: taskIds,
-                },
+                id: { in: taskIds },
                 userId,
             },
             data: {
@@ -405,9 +351,7 @@ export class TaskRepository {
     async bulkDelete(taskIds, userId) {
         return prisma.task.deleteMany({
             where: {
-                id: {
-                    in: taskIds,
-                },
+                id: { in: taskIds },
                 userId,
             },
         });
@@ -418,9 +362,7 @@ export class TaskRepository {
     async getAnalytics(userId) {
         const [totalTasks, completedTasks, pendingTasks, tasks,] = await Promise.all([
             prisma.task.count({
-                where: {
-                    userId,
-                },
+                where: { userId },
             }),
             prisma.task.count({
                 where: {
@@ -435,18 +377,14 @@ export class TaskRepository {
                 },
             }),
             prisma.task.findMany({
-                where: {
-                    userId,
-                },
+                where: { userId },
                 select: {
                     id: true,
                     completed: true,
                     dueDate: true,
                     createdAt: true,
                 },
-                orderBy: {
-                    dueDate: "asc",
-                },
+                orderBy: { dueDate: "asc" },
             }),
         ]);
         return {

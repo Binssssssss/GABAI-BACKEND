@@ -1,6 +1,6 @@
 import { Router } from "express";
-import * as notificationController from "@/controllers/notification.controller";
-import { authMiddleware } from "@/middleware/auth.middleware";
+import * as notificationController from "../controllers/notification.controller.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 const router = Router();
 router.get("/test", (_req, res) => {
     res.json({

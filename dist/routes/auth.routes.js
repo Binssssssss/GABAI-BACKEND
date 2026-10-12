@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
-import * as authController from "@/controllers/auth.controller";
-import { validate } from "@/middleware/validation.middleware";
-import { authMiddleware } from "@/middleware/auth.middleware";
+import * as authController from "../controllers/auth.controller.js";
+import { validate } from "../middleware/validation.middleware.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 const router = Router();
 /**
  * REGISTER

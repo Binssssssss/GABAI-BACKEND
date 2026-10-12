@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { normalizeEmail } from "@/utils/email";
+import { prisma } from "../lib/prisma.js";
+import { normalizeEmail } from "../utils/email.js";
 export class UserRepository {
     async create(data) {
         return prisma.user.create({

@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
-import routes from "@/routes";
-import { errorMiddleware } from "@/middleware/error.middleware";
-import { notFoundMiddleware } from "@/middleware/notFound.middleware";
+import routes from "./routes/index.js";
+import { errorMiddleware } from "./middleware/error.middleware.js";
+import { notFoundMiddleware } from "./middleware/notFound.middleware.js";
 const app = express();
 app.use((req, res, next) => {
     cors()(req, res, next);

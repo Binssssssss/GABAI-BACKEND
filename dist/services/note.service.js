@@ -1,4 +1,4 @@
-import * as noteRepository from '../repositories/note.repository';
+import * as noteRepository from '../repositories/note.repository.js';
 export const createNote = async (userId, data) => {
     return noteRepository.createNote(userId, data);
 };

@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
-import { authMiddleware } from "@/middleware/auth.middleware";
-import { validate } from "@/middleware/validation.middleware";
-import { taskController } from "@/controllers/task.controller";
+import { authMiddleware } from "../middleware/auth.middleware.js";
+import { validate } from "../middleware/validation.middleware.js";
+import { taskController } from "../controllers/task.controller.js";
 const router = Router();
 const bulkTaskSchema = z.object({
     taskIds: z
@@ -69,6 +69,10 @@ router.put("/:id", authMiddleware, taskController.updateTask.bind(taskController
 // ===============================
 // DELETE TASK
 // ===============================
+// ===============================
+// UPDATE TASK (PARTIAL)
+// ===============================
+router.patch("/:id", authMiddleware, taskController.updateTask.bind(taskController));
 router.delete("/:id", authMiddleware, taskController.deleteTask.bind(taskController));
 export default router;
 //# sourceMappingURL=task.routes.js.map

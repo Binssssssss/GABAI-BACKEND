@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { authMiddleware } from "@/middleware/auth.middleware";
-import * as pushTokenController from "@/controllers/push-token.controller";
+import { authMiddleware } from "../middleware/auth.middleware.js";
+import * as pushTokenController from "../controllers/push-token.controller.js";
 const router = Router();
 router.use(authMiddleware);
 router.post("/", pushTokenController.registerPushToken);

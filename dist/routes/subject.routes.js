@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { subjectController } from '@/controllers/subject.controller';
-import { authMiddleware } from '@/middleware/auth.middleware';
+import { subjectController } from '../controllers/subject.controller.js';
+import { authMiddleware } from '../middleware/auth.middleware.js';
 const router = Router();
 router.use(authMiddleware);
 router.get('/', subjectController.getSubjects.bind(subjectController));

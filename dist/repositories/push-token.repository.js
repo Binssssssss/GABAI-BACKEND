@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../lib/prisma.js";
 export const upsertPushToken = async (userId, token, platform) => {
     return prisma.pushToken.upsert({
         where: {

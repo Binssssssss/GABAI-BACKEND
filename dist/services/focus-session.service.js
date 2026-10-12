@@ -1,4 +1,4 @@
-import { focusSessionRepository } from "../repositories/focus-session.repository";
+import { focusSessionRepository } from "../repositories/focus-session.repository.js";
 const MANILA_TIME_ZONE = "Asia/Manila";
 class FocusSessionService {
     /**

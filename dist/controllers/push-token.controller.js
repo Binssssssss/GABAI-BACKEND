@@ -1,4 +1,4 @@
-import * as pushTokenRepository from "@/repositories/push-token.repository";
+import * as pushTokenRepository from "../repositories/push-token.repository.js";
 export const registerPushToken = async (req, res) => {
     try {
         const userId = req.user?.id;
