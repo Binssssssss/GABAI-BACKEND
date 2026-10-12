@@ -1,3 +1,4 @@
+
 import { prisma } from "../lib/prisma";
 
 import {
@@ -59,12 +60,8 @@ export class TaskRepository {
       },
 
       orderBy: [
-        {
-          dueDate: "asc",
-        },
-        {
-          dueTime: "asc",
-        },
+        { dueDate: "asc" },
+        { dueTime: "asc" },
       ],
     });
   }
@@ -77,28 +74,16 @@ export class TaskRepository {
     userId: string,
     filter: string,
   ) {
-    const today = new Date()
-      .toISOString()
-      .split("T")[0];
+    const today = new Date().toISOString().split("T")[0];
 
     switch (filter.toLowerCase()) {
       case "all":
         return prisma.task.findMany({
-          where: {
-            userId,
-          },
-
-          include: {
-            subTasks: true,
-          },
-
+          where: { userId },
+          include: { subTasks: true },
           orderBy: [
-            {
-              dueDate: "asc",
-            },
-            {
-              dueTime: "asc",
-            },
+            { dueDate: "asc" },
+            { dueTime: "asc" },
           ],
         });
 
@@ -108,14 +93,8 @@ export class TaskRepository {
             userId,
             dueDate: today,
           },
-
-          include: {
-            subTasks: true,
-          },
-
-          orderBy: {
-            dueTime: "asc",
-          },
+          include: { subTasks: true },
+          orderBy: { dueTime: "asc" },
         });
 
       case "upcoming":
@@ -123,22 +102,12 @@ export class TaskRepository {
           where: {
             userId,
             completed: false,
-            dueDate: {
-              gt: today,
-            },
+            dueDate: { gt: today },
           },
-
-          include: {
-            subTasks: true,
-          },
-
+          include: { subTasks: true },
           orderBy: [
-            {
-              dueDate: "asc",
-            },
-            {
-              dueTime: "asc",
-            },
+            { dueDate: "asc" },
+            { dueTime: "asc" },
           ],
         });
 
@@ -148,18 +117,10 @@ export class TaskRepository {
             userId,
             completed: true,
           },
-
-          include: {
-            subTasks: true,
-          },
-
+          include: { subTasks: true },
           orderBy: [
-            {
-              dueDate: "asc",
-            },
-            {
-              dueTime: "asc",
-            },
+            { dueDate: "asc" },
+            { dueTime: "asc" },
           ],
         });
 
@@ -169,18 +130,10 @@ export class TaskRepository {
             userId,
             completed: false,
           },
-
-          include: {
-            subTasks: true,
-          },
-
+          include: { subTasks: true },
           orderBy: [
-            {
-              dueDate: "asc",
-            },
-            {
-              dueTime: "asc",
-            },
+            { dueDate: "asc" },
+            { dueTime: "asc" },
           ],
         });
 
@@ -189,22 +142,12 @@ export class TaskRepository {
           where: {
             userId,
             completed: false,
-            dueDate: {
-              lt: today,
-            },
+            dueDate: { lt: today },
           },
-
-          include: {
-            subTasks: true,
-          },
-
+          include: { subTasks: true },
           orderBy: [
-            {
-              dueDate: "asc",
-            },
-            {
-              dueTime: "asc",
-            },
+            { dueDate: "asc" },
+            { dueTime: "asc" },
           ],
         });
 
@@ -222,30 +165,21 @@ export class TaskRepository {
     userId: string,
   ) {
     const task = await prisma.task.findUnique({
-      where: {
-        id,
-      },
-
-      include: {
-        subTasks: true,
-      },
+      where: { id },
+      include: { subTasks: true },
     });
 
-    // Task ID does not exist at all
     if (!task) {
       console.warn(
         `[TaskRepository] Task ID does not exist: ${id}`,
       );
-
       return null;
     }
 
-    // Task exists but belongs to another user
     if (task.userId !== userId) {
       console.warn(
         `[TaskRepository] Task ownership mismatch. taskId=${id}, requestedUser=${userId}, owner=${task.userId}`,
       );
-
       return null;
     }
 
@@ -265,14 +199,8 @@ export class TaskRepository {
         userId,
         dueDate: date,
       },
-
-      include: {
-        subTasks: true,
-      },
-
-      orderBy: {
-        dueTime: "asc",
-      },
+      include: { subTasks: true },
+      orderBy: { dueTime: "asc" },
     });
   }
 
@@ -284,9 +212,52 @@ export class TaskRepository {
     userId: string,
     data: CreateTaskInput,
   ) {
+    // Validate the required task title.
+    const title =
+      typeof data.title === "string"
+        ? data.title.trim()
+        : "";
+
+    if (!title) {
+      const error = new Error("Task title is required.");
+      Object.assign(error, { statusCode: 400 });
+      throw error;
+    }
+
+    // Normalize subtask entries before sending them to Prisma.
+    // Supports common frontend fields: title, text, or label.
+    const rawSubTasks: unknown = data.subTasks;
+
+    const validSubTasks = Array.isArray(rawSubTasks)
+      ? rawSubTasks
+          .filter(
+            (item): item is Record<string, unknown> =>
+              typeof item === "object" && item !== null,
+          )
+          .map((item) => {
+            const subTaskTitle =
+              typeof item.title === "string"
+                ? item.title.trim()
+                : typeof item.text === "string"
+                  ? item.text.trim()
+                  : typeof item.label === "string"
+                    ? item.label.trim()
+                    : "";
+
+            return {
+              title: subTaskTitle,
+              completed:
+                typeof item.completed === "boolean"
+                  ? item.completed
+                  : false,
+            };
+          })
+          .filter((item) => item.title.length > 0)
+      : [];
+
     return prisma.task.create({
       data: {
-        title: data.title,
+        title,
         description: data.description ?? "",
         subject: data.subject,
         priority: data.priority,
@@ -296,13 +267,12 @@ export class TaskRepository {
         completed: data.completed ?? false,
         userId,
 
-        subTasks: {
-          create:
-            data.subTasks?.map((subTask) => ({
-              title: subTask.title,
-              completed: subTask.completed ?? false,
-            })) ?? [],
-        },
+        // Never create a subtask with a missing or blank title.
+        ...(validSubTasks.length > 0 && {
+          subTasks: {
+            create: validSubTasks,
+          },
+        }),
       },
 
       include: {
@@ -321,9 +291,7 @@ export class TaskRepository {
     data: UpdateTaskInput,
   ) {
     const task = await prisma.task.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
     });
 
     if (!task || task.userId !== userId) {
@@ -331,9 +299,7 @@ export class TaskRepository {
     }
 
     return prisma.task.update({
-      where: {
-        id,
-      },
+      where: { id },
 
       data: {
         ...(data.title !== undefined && {
@@ -369,9 +335,7 @@ export class TaskRepository {
         }),
       },
 
-      include: {
-        subTasks: true,
-      },
+      include: { subTasks: true },
     });
   }
 
@@ -384,9 +348,7 @@ export class TaskRepository {
     userId: string,
   ) {
     const task = await prisma.task.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
     });
 
     if (!task || task.userId !== userId) {
@@ -394,9 +356,7 @@ export class TaskRepository {
     }
 
     return prisma.task.delete({
-      where: {
-        id,
-      },
+      where: { id },
     });
   }
 
@@ -413,23 +373,15 @@ export class TaskRepository {
         userId,
         completed: false,
         dueDate: {
-          gte: new Date()
-            .toISOString()
-            .split("T")[0],
+          gte: new Date().toISOString().split("T")[0],
         },
       },
 
-      include: {
-        subTasks: true,
-      },
+      include: { subTasks: true },
 
       orderBy: [
-        {
-          dueDate: "asc",
-        },
-        {
-          dueTime: "asc",
-        },
+        { dueDate: "asc" },
+        { dueTime: "asc" },
       ],
 
       take: limit,
@@ -446,9 +398,7 @@ export class TaskRepository {
     data: RescheduleTaskInput,
   ) {
     const task = await prisma.task.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
     });
 
     if (!task || task.userId !== userId) {
@@ -456,9 +406,7 @@ export class TaskRepository {
     }
 
     return prisma.task.update({
-      where: {
-        id,
-      },
+      where: { id },
 
       data: {
         dueDate: data.dueDate,
@@ -468,9 +416,7 @@ export class TaskRepository {
         }),
       },
 
-      include: {
-        subTasks: true,
-      },
+      include: { subTasks: true },
     });
   }
 
@@ -484,27 +430,20 @@ export class TaskRepository {
     subTaskId: string,
     data: UpdateSubTaskInput,
   ) {
-    const subTask =
-      await prisma.subTask.findFirst({
-        where: {
-          id: subTaskId,
-          taskId,
-
-          task: {
-            userId,
-          },
-        },
-      });
+    const subTask = await prisma.subTask.findFirst({
+      where: {
+        id: subTaskId,
+        taskId,
+        task: { userId },
+      },
+    });
 
     if (!subTask) {
       return null;
     }
 
     return prisma.subTask.update({
-      where: {
-        id: subTaskId,
-      },
-
+      where: { id: subTaskId },
       data: {
         completed: data.completed,
       },
@@ -521,9 +460,7 @@ export class TaskRepository {
   ) {
     return prisma.task.updateMany({
       where: {
-        id: {
-          in: taskIds,
-        },
+        id: { in: taskIds },
         userId,
       },
 
@@ -543,9 +480,7 @@ export class TaskRepository {
   ) {
     return prisma.task.deleteMany({
       where: {
-        id: {
-          in: taskIds,
-        },
+        id: { in: taskIds },
         userId,
       },
     });
@@ -563,9 +498,7 @@ export class TaskRepository {
       tasks,
     ] = await Promise.all([
       prisma.task.count({
-        where: {
-          userId,
-        },
+        where: { userId },
       }),
 
       prisma.task.count({
@@ -583,9 +516,7 @@ export class TaskRepository {
       }),
 
       prisma.task.findMany({
-        where: {
-          userId,
-        },
+        where: { userId },
 
         select: {
           id: true,
@@ -594,9 +525,7 @@ export class TaskRepository {
           createdAt: true,
         },
 
-        orderBy: {
-          dueDate: "asc",
-        },
+        orderBy: { dueDate: "asc" },
       }),
     ]);
 
@@ -613,5 +542,4 @@ export class TaskRepository {
 // REPOSITORY INSTANCE
 // ===============================
 
-export const taskRepository =
-  new TaskRepository();
+export const taskRepository = new TaskRepository();

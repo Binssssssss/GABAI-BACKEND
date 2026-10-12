@@ -1,3 +1,4 @@
+
 import { taskRepository } from "../repositories/task.repository";
 
 import {
@@ -55,25 +56,18 @@ function formatCalendarEvent(task: any): CalendarEvent {
     title: task.title,
     description: task.description,
     subject: task.subject,
-
     date: task.dueDate,
-
-    time: task.dueTime && task.dueTime.trim() !== "" ? task.dueTime : null,
-
+    time:
+      task.dueTime && task.dueTime.trim() !== ""
+        ? task.dueTime
+        : null,
     priority: task.priority,
-
     category: task.subject,
-
     isAllDay: !task.dueTime || task.dueTime.trim() === "",
-
     duration: null,
-
     checklist,
-
     progress: calculateProgress(checklist),
-
     completed: task.completed,
-
     hasReminder: task.hasReminder,
   };
 }
@@ -83,9 +77,59 @@ function formatCalendarEvent(task: any): CalendarEvent {
 // ===============================
 
 function validateTaskId(taskId: string): void {
-  if (!taskId || typeof taskId !== "string" || taskId.trim() === "") {
+  if (
+    !taskId ||
+    typeof taskId !== "string" ||
+    taskId.trim() === ""
+  ) {
     throw new AppError("Task ID is required.", 400);
   }
+}
+
+// ===============================
+// NORMALIZE SUBTASKS
+// ===============================
+
+function normalizeSubTasks(data: CreateTaskInput): CreateTaskInput {
+  const rawData = data as CreateTaskInput & {
+    subTasks?: unknown;
+  };
+  const rawSubTasks: unknown = rawData.subTasks;
+
+  // Do not create subtasks when none were provided.
+  if (!Array.isArray(rawSubTasks)) {
+    return data;
+  }
+
+  const validSubTasks = rawSubTasks
+    .filter(
+      (item): item is Record<string, unknown> =>
+        typeof item === "object" && item !== null,
+    )
+    .map((item) => {
+      const title =
+        typeof item.title === "string"
+          ? item.title.trim()
+          : typeof item.text === "string"
+            ? item.text.trim()
+            : typeof item.label === "string"
+              ? item.label.trim()
+              : "";
+
+      return {
+        title,
+        completed:
+          typeof item.completed === "boolean"
+            ? item.completed
+            : false,
+      };
+    })
+    .filter((item) => item.title.length > 0);
+
+  return {
+    ...data,
+    subTasks: validSubTasks,
+  } as CreateTaskInput;
 }
 
 // ===============================
@@ -100,20 +144,25 @@ const PRIORITY_WEIGHT: Record<string, number> = {
 
 function getDueTimestamp(task: any): number {
   const date =
-    typeof task.dueDate === "string" ? task.dueDate.trim() : "";
+    typeof task.dueDate === "string"
+      ? task.dueDate.trim()
+      : "";
 
   if (!date) {
     return Number.MAX_SAFE_INTEGER;
   }
 
   const time =
-    typeof task.dueTime === "string" && task.dueTime.trim() !== ""
+    typeof task.dueTime === "string" &&
+    task.dueTime.trim() !== ""
       ? task.dueTime.trim()
       : "23:59";
 
   const timestamp = new Date(`${date}T${time}:00`).getTime();
 
-  return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER : timestamp;
+  return Number.isNaN(timestamp)
+    ? Number.MAX_SAFE_INTEGER
+    : timestamp;
 }
 
 // ===============================
@@ -128,9 +177,7 @@ export class TaskService {
   // ===============================
 
   async getAllTasks(userId: string, filters?: TaskFilters) {
-    const tasks = await taskRepository.findAllByUser(userId, filters);
-
-    return tasks;
+    return taskRepository.findAllByUser(userId, filters);
   }
 
   // ===============================
@@ -215,7 +262,10 @@ export class TaskService {
       throw new AppError("Task ID is required.", 400);
     }
 
-    const task = await taskRepository.findById(normalizedTaskId, userId);
+    const task = await taskRepository.findById(
+      normalizedTaskId,
+      userId,
+    );
 
     if (!task) {
       console.warn(
@@ -233,16 +283,42 @@ export class TaskService {
   // ===============================
 
   async createTask(userId: string, data: CreateTaskInput) {
-    const task = await taskRepository.create(userId, data);
+    if (
+      !userId ||
+      typeof userId !== "string" ||
+      !userId.trim()
+    ) {
+      throw new AppError("User ID is required.", 400);
+    }
 
-    return task;
+    if (!data || typeof data !== "object") {
+      throw new AppError("Task data is required.", 400);
+    }
+
+    if (
+      typeof data.title !== "string" ||
+      data.title.trim().length === 0
+    ) {
+      throw new AppError("Task title is required.", 400);
+    }
+
+    const normalizedData = normalizeSubTasks(data);
+
+    return taskRepository.create(
+      userId.trim(),
+      normalizedData,
+    );
   }
 
   // ===============================
   // UPDATE TASK
   // ===============================
 
-  async updateTask(userId: string, taskId: string, data: UpdateTaskInput) {
+  async updateTask(
+    userId: string,
+    taskId: string,
+    data: UpdateTaskInput,
+  ) {
     validateTaskId(taskId);
 
     const normalizedTaskId = taskId.trim();
@@ -299,7 +375,10 @@ export class TaskService {
   // ===============================
 
   async getUpcomingDeadlines(userId: string) {
-    const tasks = await taskRepository.findUpcomingDeadlines(userId, 3);
+    const tasks = await taskRepository.findUpcomingDeadlines(
+      userId,
+      3,
+    );
 
     return tasks.map(formatCalendarEvent);
   }
@@ -362,7 +441,10 @@ export class TaskService {
     const normalizedTaskId = taskId.trim();
     const normalizedSubTaskId = subTaskId.trim();
 
-    const task = await taskRepository.findById(normalizedTaskId, userId);
+    const task = await taskRepository.findById(
+      normalizedTaskId,
+      userId,
+    );
 
     if (!task) {
       throw new AppError("Task not found.", 404);
@@ -406,13 +488,22 @@ export class TaskService {
     ];
 
     if (taskIds.length === 0) {
-      throw new AppError("At least one task must be selected.", 400);
+      throw new AppError(
+        "At least one task must be selected.",
+        400,
+      );
     }
 
-    const result = await taskRepository.bulkComplete(taskIds, userId);
+    const result = await taskRepository.bulkComplete(
+      taskIds,
+      userId,
+    );
 
     if (result.count === 0) {
-      throw new AppError("No selected tasks were found.", 404);
+      throw new AppError(
+        "No selected tasks were found.",
+        404,
+      );
     }
 
     return {
@@ -438,13 +529,22 @@ export class TaskService {
     ];
 
     if (taskIds.length === 0) {
-      throw new AppError("At least one task must be selected.", 400);
+      throw new AppError(
+        "At least one task must be selected.",
+        400,
+      );
     }
 
-    const result = await taskRepository.bulkDelete(taskIds, userId);
+    const result = await taskRepository.bulkDelete(
+      taskIds,
+      userId,
+    );
 
     if (result.count === 0) {
-      throw new AppError("No selected tasks were found.", 404);
+      throw new AppError(
+        "No selected tasks were found.",
+        404,
+      );
     }
 
     return {
@@ -462,11 +562,17 @@ export class TaskService {
   async getAnalytics(userId: string) {
     const analytics = await taskRepository.getAnalytics(userId);
 
-    const { totalTasks, completedTasks, pendingTasks, tasks } = analytics;
+    const {
+      totalTasks,
+      completedTasks,
+      pendingTasks,
+      tasks,
+    } = analytics;
 
-    // COMPLETION RATE
     const completionRate =
-      totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      totalTasks > 0
+        ? Math.round((completedTasks / totalTasks) * 100)
+        : 0;
 
     // CURRENT WEEK
     const today = new Date();
@@ -509,10 +615,14 @@ export class TaskService {
 
     // PREVIOUS WEEK
     const previousWeekStart = new Date(startOfWeek);
-    previousWeekStart.setDate(previousWeekStart.getDate() - 7);
+    previousWeekStart.setDate(
+      previousWeekStart.getDate() - 7,
+    );
 
     const previousWeekEnd = new Date(startOfWeek);
-    previousWeekEnd.setDate(previousWeekEnd.getDate() - 1);
+    previousWeekEnd.setDate(
+      previousWeekEnd.getDate() - 1,
+    );
     previousWeekEnd.setHours(23, 59, 59, 999);
 
     let previousWeekCompleted = 0;
@@ -524,7 +634,10 @@ export class TaskService {
 
       const dueDate = new Date(`${task.dueDate}T00:00:00`);
 
-      if (dueDate >= previousWeekStart && dueDate <= previousWeekEnd) {
+      if (
+        dueDate >= previousWeekStart &&
+        dueDate <= previousWeekEnd
+      ) {
         previousWeekCompleted += 1;
       }
     }
