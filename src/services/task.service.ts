@@ -1,6 +1,6 @@
 
 import { taskRepository } from "../repositories/task.repository";
-
+import { sendPushNotificationSafely } from "@/services/push-notification.service";
 import {
   CreateTaskInput,
   UpdateTaskInput,
@@ -283,32 +283,45 @@ export class TaskService {
   // ===============================
 
   async createTask(userId: string, data: CreateTaskInput) {
-    if (
-      !userId ||
-      typeof userId !== "string" ||
-      !userId.trim()
-    ) {
-      throw new AppError("User ID is required.", 400);
-    }
-
-    if (!data || typeof data !== "object") {
-      throw new AppError("Task data is required.", 400);
-    }
-
-    if (
-      typeof data.title !== "string" ||
-      data.title.trim().length === 0
-    ) {
-      throw new AppError("Task title is required.", 400);
-    }
-
-    const normalizedData = normalizeSubTasks(data);
-
-    return taskRepository.create(
-      userId.trim(),
-      normalizedData,
-    );
+  if (
+    !userId ||
+    typeof userId !== "string" ||
+    !userId.trim()
+  ) {
+    throw new AppError("User ID is required.", 400);
   }
+
+  if (!data || typeof data !== "object") {
+    throw new AppError("Task data is required.", 400);
+  }
+
+  if (
+    typeof data.title !== "string" ||
+    data.title.trim().length === 0
+  ) {
+    throw new AppError("Task title is required.", 400);
+  }
+
+  const normalizedData = normalizeSubTasks(data);
+
+  const createdTask = await taskRepository.create(
+    userId.trim(),
+    normalizedData,
+  );
+
+  await sendPushNotificationSafely({
+    userId: userId.trim(),
+    title: "Task Created",
+    message: `Your task "${createdTask.title}" has been created successfully.`,
+    type: "task_created",
+    taskId: createdTask.id,
+    data: {
+      taskId: createdTask.id,
+    },
+  });
+
+  return createdTask;
+}
 
   // ===============================
   // UPDATE TASK
@@ -478,41 +491,54 @@ export class TaskService {
   // ===============================
 
   async bulkComplete(input: BulkTaskInput, userId: string) {
-    const taskIds = [
-      ...new Set(
-        input.taskIds
-          .filter((id) => typeof id === "string")
-          .map((id) => id.trim())
-          .filter(Boolean),
-      ),
-    ];
+  const taskIds = [
+    ...new Set(
+      input.taskIds
+        .filter((id) => typeof id === "string")
+        .map((id) => id.trim())
+        .filter(Boolean),
+    ),
+  ];
 
-    if (taskIds.length === 0) {
-      throw new AppError(
-        "At least one task must be selected.",
-        400,
-      );
-    }
-
-    const result = await taskRepository.bulkComplete(
-      taskIds,
-      userId,
+  if (taskIds.length === 0) {
+    throw new AppError(
+      "At least one task must be selected.",
+      400,
     );
-
-    if (result.count === 0) {
-      throw new AppError(
-        "No selected tasks were found.",
-        404,
-      );
-    }
-
-    return {
-      count: result.count,
-      message: `${result.count} task${
-        result.count === 1 ? "" : "s"
-      } completed successfully.`,
-    };
   }
+
+  const result = await taskRepository.bulkComplete(
+    taskIds,
+    userId,
+  );
+
+  if (result.count === 0) {
+    throw new AppError(
+      "No selected tasks were found.",
+      404,
+    );
+  }
+
+  await sendPushNotificationSafely({
+    userId,
+    title: "Tasks Completed",
+    message:
+      result.count === 1
+        ? "You completed 1 task. Great job!"
+        : `You completed ${result.count} tasks. Great job!`,
+    type: "task_completed",
+    data: {
+      count: String(result.count),
+    },
+  });
+
+  return {
+    count: result.count,
+    message: `${result.count} task${
+      result.count === 1 ? "" : "s"
+    } completed successfully.`,
+  };
+}
 
   // ===============================
   // BULK DELETE TASKS

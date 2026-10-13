@@ -1,4 +1,5 @@
 import { focusSessionRepository } from "../repositories/focus-session.repository";
+import { sendPushNotificationSafely } from "@/services/push-notification.service";
 import {
   AmbientSound,
   FocusMode,
@@ -397,44 +398,55 @@ class FocusSessionService {
    * Complete a focus session.
    */
   async completeSession(
-    userId: string,
-    sessionId: string
-  ): Promise<FocusSessionResponse> {
-    const session =
-      await this.getOwnedSession(
-        userId,
-        sessionId
-      );
+  userId: string,
+  sessionId: string,
+): Promise<FocusSessionResponse> {
+  const session = await this.getOwnedSession(
+    userId,
+    sessionId,
+  );
 
-    if (
-      session.status !== "RUNNING" &&
-      session.status !== "PAUSED"
-    ) {
-      throw new Error(
-        "Only an active focus session can be completed."
-      );
-    }
-
-    await focusSessionRepository.updateSession(
-      sessionId,
-      userId,
-      {
-        remainingTime: 0,
-        status: "COMPLETED",
-        endedAt: new Date(),
-      }
-    );
-
-    const updatedSession =
-      await this.getOwnedSession(
-        userId,
-        sessionId
-      );
-
-    return this.toFocusSessionResponse(
-      updatedSession
+  if (
+    session.status !== "RUNNING" &&
+    session.status !== "PAUSED"
+  ) {
+    throw new Error(
+      "Only an active focus session can be completed.",
     );
   }
+
+  await focusSessionRepository.updateSession(
+    sessionId,
+    userId,
+    {
+      remainingTime: 0,
+      status: "COMPLETED",
+      endedAt: new Date(),
+    },
+  );
+
+  const updatedSession = await this.getOwnedSession(
+    userId,
+    sessionId,
+  );
+
+  await sendPushNotificationSafely({
+    userId,
+    title: "Focus Session Completed",
+    message: session.subject?.trim()
+      ? `Great work! Your focus session for "${session.subject}" is complete.`
+      : "Great work! Your focus session is complete.",
+    type: "focus_session_completed",
+    data: {
+      sessionId,
+      durationMinutes: String(
+        Math.round(session.duration / 60),
+      ),
+    },
+  });
+
+  return this.toFocusSessionResponse(updatedSession);
+}
 
   /**
    * Cancel a focus session.
