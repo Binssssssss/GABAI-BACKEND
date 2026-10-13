@@ -20,6 +20,7 @@ import { AppError } from '../utils/response';
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_LIST_ITEMS = 5;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const BULLET = '•';
 
 type PendingTask = AssistantContext['pendingTasks'][number];
 
@@ -44,6 +45,10 @@ const KEYWORDS = {
   tasks: ['task', 'assignment', 'homework', 'buluhaton', 'gawain', 'todo', 'activity', 'activities', 'project', 'requirement', 'deadline'],
   greeting: ['hi', 'hello', 'hey', 'kumusta', 'kamusta', 'musta', 'maayong buntag', 'maayong hapon', 'maayong gabii', 'good morning', 'good afternoon', 'good evening'],
   thanks: ['thank', 'salamat', 'ty'],
+  stats: ['productivity', 'statistic', 'stats', 'analytics', 'summary', 'overview', 'report', 'performance'],
+  periodToday: ['today', 'karon', 'ngayon', 'tonight'],
+  periodWeek: ['week', 'semana', 'linggo', 'last 7 days'],
+  periodMonth: ['month', 'bulan', 'buwan'],
 };
 
 // ======================================================
@@ -151,10 +156,10 @@ function sortByUrgency(tasks: PendingTask[]): PendingTask[] {
 function taskList(tasks: PendingTask[]): string {
   const lines = tasks
     .slice(0, MAX_LIST_ITEMS)
-    .map((task) => `- **${task.title}** (${task.subject}), due ${formatDue(task)}`);
+    .map((task) => `${BULLET} ${task.title} (${task.subject}), due ${formatDue(task)}`);
 
   if (tasks.length > MAX_LIST_ITEMS) {
-    lines.push(`- ...and ${tasks.length - MAX_LIST_ITEMS} more in your Tasks tab`);
+    lines.push(`${BULLET} and ${tasks.length - MAX_LIST_ITEMS} more in your Tasks tab`);
   }
 
   return lines.join('\n');
@@ -170,19 +175,52 @@ function tasksOn(context: AssistantContext, date: string) {
 }
 
 // ======================================================
+// MONEY HELPERS
+// ======================================================
+
+type Period = 'today' | 'week' | 'month';
+
+const PERIOD_LABEL: Record<Period, string> = {
+  today: 'today',
+  week: 'this week',
+  month: 'this month',
+};
+
+/** Which period the user is asking about. Defaults to this month. */
+function detectPeriod(has: (keywords: string[]) => boolean): Period {
+  if (has(KEYWORDS.periodMonth)) return 'month';
+  if (has(KEYWORDS.periodWeek)) return 'week';
+  if (has(KEYWORDS.periodToday)) return 'today';
+  return 'month';
+}
+
+function transactionsIn(context: AssistantContext, period: Period, type: 'income' | 'expense') {
+  const from = context.periodStarts[period].getTime();
+  return context.recentTransactions.filter(
+    (item) => item.type === type && new Date(item.date).getTime() >= from,
+  );
+}
+
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+// ======================================================
 // ANSWERS
 // ======================================================
 
 function answerHelp(): string {
   return [
-    'I can answer questions about your **GabAi data**. Try asking:',
-    '- "What is due today?" / "Unsay deadline karon?"',
-    '- "What should I do next?"',
-    '- "Do I have overdue tasks?"',
-    '- "What is my schedule this week?"',
-    '- "How much did I spend this month?"',
-    '- "What is my balance?"',
-    '- "Show my subjects", "my notes", or "my focus sessions"',
+    'Here is what I can help you with, using your GabAi data:',
+    '',
+    `${BULLET} "What is due today?" / "Unsay deadline karon?"`,
+    `${BULLET} "What should I do next?"`,
+    `${BULLET} "Do I have overdue tasks?"`,
+    `${BULLET} "What is my schedule this week?"`,
+    `${BULLET} "How much did I spend this week?"`,
+    `${BULLET} "What is my balance?"`,
+    `${BULLET} "Show my productivity summary"`,
+    `${BULLET} "Show my subjects", "my notes" or "my focus sessions"`,
   ].join('\n');
 }
 
@@ -190,10 +228,10 @@ function answerOverdue(context: AssistantContext): string {
   const overdue = sortByUrgency(overdueTasks(context));
 
   if (overdue.length === 0) {
-    return 'Good news: you have **no overdue tasks**. Keep it up!';
+    return 'You have no overdue tasks. Everything is on track.';
   }
 
-  return `You have **${plural(overdue.length, 'overdue task')}**:\n${taskList(overdue)}\n\nTry finishing **${overdue[0].title}** first.`;
+  return `You have ${plural(overdue.length, 'overdue task')}:\n\n${taskList(overdue)}\n\nI recommend finishing "${overdue[0].title}" first.`;
 }
 
 function answerDay(context: AssistantContext, offsetDays: 0 | 1): string {
@@ -201,15 +239,16 @@ function answerDay(context: AssistantContext, offsetDays: 0 | 1): string {
   const tasks = sortByUrgency(tasksOn(context, manilaDate(offsetDays)));
 
   if (tasks.length === 0) {
+    const tomorrowCount = tasksOn(context, manilaDate(1)).length;
     const extra =
-      offsetDays === 0 && tasksOn(context, manilaDate(1)).length > 0
-        ? ` Tomorrow you have **${plural(tasksOn(context, manilaDate(1)).length, 'task')}**.`
+      offsetDays === 0 && tomorrowCount > 0
+        ? ` You have ${plural(tomorrowCount, 'task')} due tomorrow.`
         : '';
 
-    return `You have **no tasks due ${label}**.${extra}`;
+    return `You have no tasks due ${label}.${extra}`;
   }
 
-  return `You have **${plural(tasks.length, 'task')}** due ${label}:\n${taskList(tasks)}`;
+  return `You have ${plural(tasks.length, 'task')} due ${label}:\n\n${taskList(tasks)}`;
 }
 
 function answerWeek(context: AssistantContext): string {
@@ -224,34 +263,34 @@ function answerWeek(context: AssistantContext): string {
 
   const overdueCount = overdueTasks(context).length;
   const overdueNote =
-    overdueCount > 0 ? `\n\nYou also have **${plural(overdueCount, 'overdue task')}**.` : '';
+    overdueCount > 0 ? `\n\nYou also have ${plural(overdueCount, 'overdue task')}.` : '';
 
   if (tasks.length === 0) {
-    return `Nothing is due in the **next 7 days**.${overdueNote}`;
+    return `Nothing is due in the next 7 days.${overdueNote}`;
   }
 
-  return `Here is your **next 7 days** (${plural(tasks.length, 'task')}):\n${taskList(tasks)}${overdueNote}`;
+  return `Here is what's due in the next 7 days (${plural(tasks.length, 'task')}):\n\n${taskList(tasks)}${overdueNote}`;
 }
 
 function answerNext(context: AssistantContext): string {
   const ordered = sortByUrgency(context.pendingTasks);
 
   if (ordered.length === 0) {
-    return "You're **all caught up**! No pending tasks right now.";
+    return "You're all caught up. There are no pending tasks right now.";
   }
 
   const [first, ...rest] = ordered;
   const isOverdue = first.dueDate < manilaDate(0);
 
-  let reply = `Start with **${first.title}** (${first.subject}). It's ${
-    isOverdue ? '**overdue**' : `due ${formatDue(first)}`
-  } and has **${first.priority}** priority.`;
+  let reply = `I recommend starting with "${first.title}" (${first.subject}). It is ${
+    isOverdue ? 'overdue' : `due ${formatDue(first)}`
+  } and marked ${first.priority} priority.`;
 
   if (rest.length > 0) {
-    reply += `\n\nAfter that: ${rest
+    reply += `\n\nUp next:\n${rest
       .slice(0, 2)
-      .map((task) => `**${task.title}**`)
-      .join(', ')}.`;
+      .map((task) => `${BULLET} ${task.title} (${task.subject}), due ${formatDue(task)}`)
+      .join('\n')}`;
   }
 
   return reply;
@@ -262,44 +301,78 @@ function answerProgress(context: AssistantContext): string {
   const total = done + context.pendingTasks.length;
 
   if (total === 0) {
-    return "You don't have any tasks yet. Add one in the **Tasks** tab to start tracking your progress.";
+    return "You don't have any tasks yet. Add one in the Tasks tab to start tracking your progress.";
   }
 
   const rate = Math.round((done / total) * 100);
 
-  return `You've completed **${done} of ${total} tasks** (${rate}%). ${
+  return `You've completed ${done} of ${total} tasks (${rate}%). ${
     context.pendingTasks.length > 0
-      ? `**${plural(context.pendingTasks.length, 'task')}** left to go.`
-      : 'Everything is done. Great job!'
+      ? `${capitalize(plural(context.pendingTasks.length, 'task'))} remaining.`
+      : 'Everything is done. Great work!'
   }`;
+}
+
+function answerStats(context: AssistantContext): string {
+  const done = context.completedTaskCount;
+  const pending = context.pendingTasks.length;
+  const total = done + pending;
+  const rate = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  const weekStart = context.periodStarts.week.getTime();
+  const focusThisWeek = context.focusSessions.filter(
+    (session) => session.createdAt.getTime() >= weekStart,
+  ).length;
+
+  const overdueCount = overdueTasks(context).length;
+  const dueToday = tasksOn(context, manilaDate(0)).length;
+
+  const lines = [
+    'Here is your productivity summary:',
+    '',
+    `${BULLET} Task completion: ${done} of ${total} (${rate}%)`,
+    `${BULLET} Pending tasks: ${pending}`,
+    `${BULLET} Due today: ${dueToday}`,
+    `${BULLET} Overdue: ${overdueCount}`,
+    `${BULLET} Focus sessions this week: ${focusThisWeek}`,
+  ];
+
+  if (overdueCount > 0) {
+    lines.push('', 'Clearing your overdue tasks first will raise your completion rate the fastest.');
+  } else if (pending === 0 && total > 0) {
+    lines.push('', 'You have no pending tasks. Excellent work!');
+  }
+
+  return lines.join('\n');
 }
 
 function answerTasks(context: AssistantContext): string {
   const pending = sortByUrgency(context.pendingTasks);
 
   if (pending.length === 0) {
-    return 'You have **no pending tasks**. Nice work!';
+    return 'You have no pending tasks. Nice work!';
   }
 
   const overdueCount = overdueTasks(context).length;
   const todayCount = tasksOn(context, manilaDate(0)).length;
 
   const summary = [
-    `You have **${plural(pending.length, 'pending task')}**`,
+    `You have ${plural(pending.length, 'pending task')}`,
     overdueCount > 0 ? `${overdueCount} overdue` : null,
     todayCount > 0 ? `${todayCount} due today` : null,
   ]
     .filter(Boolean)
     .join(', ');
 
-  return `${summary}.\n${taskList(pending)}`;
+  return `${summary}:\n\n${taskList(pending)}`;
 }
 
-function answerExpenses(context: AssistantContext): string {
-  const expenses = context.monthTransactions.filter((item) => item.type === 'expense');
+function answerExpenses(context: AssistantContext, period: Period): string {
+  const label = PERIOD_LABEL[period];
+  const expenses = transactionsIn(context, period, 'expense');
 
   if (expenses.length === 0) {
-    return 'You have **no expenses recorded this month** yet.';
+    return `You have no expenses recorded ${label}.`;
   }
 
   const total = expenses.reduce((sum, item) => sum + item.amount, 0);
@@ -312,71 +385,72 @@ function answerExpenses(context: AssistantContext): string {
   const topCategories = [...byCategory.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
-    .map(([category, amount]) => `- ${category}: **${peso(amount)}**`)
+    .map(([category, amount]) => `${BULLET} ${category}: ${peso(amount)}`)
     .join('\n');
 
-  return `This month you've spent **${peso(total)}** (${plural(expenses.length, 'expense')}).\nTop categories:\n${topCategories}`;
+  return `You've spent ${peso(total)} ${label} across ${plural(expenses.length, 'expense')}.\n\nTop categories:\n${topCategories}`;
 }
 
-function answerIncome(context: AssistantContext): string {
-  const income = context.monthTransactions
-    .filter((item) => item.type === 'income')
-    .reduce((sum, item) => sum + item.amount, 0);
+function answerIncome(context: AssistantContext, period: Period): string {
+  const income = transactionsIn(context, period, 'income').reduce(
+    (sum, item) => sum + item.amount,
+    0,
+  );
 
-  return `This month you've received **${peso(income)}**. Your total income so far is **${peso(context.wallet.totalIncome)}**.`;
+  return `You've received ${peso(income)} ${PERIOD_LABEL[period]}. Your total income so far is ${peso(context.wallet.totalIncome)}.`;
 }
 
 function answerBudget(context: AssistantContext): string {
   const { balance, totalIncome, totalExpenses } = context.wallet;
 
   if (totalIncome === 0 && totalExpenses === 0) {
-    return 'You have no transactions yet. Add your allowance or expenses in the **Expenses** tab.';
+    return 'You have no transactions yet. Add your allowance or expenses in the Expenses tab.';
   }
 
-  const warning = balance < 0 ? '\n\nHeads up: you are spending **more than you earn**.' : '';
+  const warning = balance < 0 ? '\n\nNote: your expenses are higher than your income.' : '';
 
-  return `Your balance is **${peso(balance)}**.\n- Total income: ${peso(totalIncome)}\n- Total expenses: ${peso(totalExpenses)}${warning}`;
+  return `Your current balance is ${peso(balance)}.\n\n${BULLET} Total income: ${peso(totalIncome)}\n${BULLET} Total expenses: ${peso(totalExpenses)}${warning}`;
 }
 
 function answerSubjects(context: AssistantContext): string {
   if (context.subjects.length === 0) {
-    return "You don't have any subjects yet. You can add them from the **Tasks** tab.";
+    return "You don't have any subjects yet. You can add them from the Tasks tab.";
   }
 
   const lines = context.subjects.map((subject) => {
     const pending = context.pendingTasks.filter((task) => task.subject === subject.name).length;
-    return `- **${subject.name}**${pending > 0 ? ` (${plural(pending, 'pending task')})` : ''}`;
+    return `${BULLET} ${subject.name}${pending > 0 ? ` (${plural(pending, 'pending task')})` : ''}`;
   });
 
-  return `Your subjects:\n${lines.join('\n')}`;
+  return `Your subjects:\n\n${lines.join('\n')}`;
 }
 
 function answerFocus(context: AssistantContext): string {
+  if (context.focusSessions.length === 0) {
+    return 'You have no focus sessions yet. Start one in the Focus tab to study without distractions.';
+  }
+
   const weekAgo = Date.now() - 7 * DAY_MS;
   const thisWeek = context.focusSessions.filter(
     (session) => session.createdAt.getTime() >= weekAgo,
   );
 
-  if (context.focusSessions.length === 0) {
-    return 'You have no focus sessions yet. Start one in the **Focus** tab to study without distractions.';
-  }
-
   const last = context.focusSessions[0];
 
-  return `You had **${plural(thisWeek.length, 'focus session')}** in the last 7 days. Your latest was for **${last.subject ?? 'General'}**.`;
+  return `You completed ${plural(thisWeek.length, 'focus session')} in the last 7 days. Your most recent session was for ${last.subject ?? 'General'}.`;
 }
 
 function answerNotes(context: AssistantContext): string {
   if (context.noteCount === 0) {
-    return 'You have no notes yet. Create one in the **Notes** tab.';
+    return 'You have no notes yet. Create one in the Notes tab.';
   }
 
   const recent = context.recentNotes
     .slice(0, 3)
-    .map((note) => `- **${note.title}** (${note.category})${note.isPinned ? ', pinned' : ''}`)
+    .map((note) => `${BULLET} ${note.title} (${note.category})${note.isPinned ? ', pinned' : ''}`)
     .join('\n');
 
-  return `You have **${plural(context.noteCount, 'note')}**. Most recent:\n${recent}`;
+  return `You have ${plural(context.noteCount, 'note')}. Most recent:\n\n${recent}`;
 }
 
 function answerGreeting(context: AssistantContext): string {
@@ -386,26 +460,32 @@ function answerGreeting(context: AssistantContext): string {
   const status =
     todayCount === 0 && overdueCount === 0
       ? 'Nothing is due today.'
-      : [
-          todayCount > 0 ? `**${plural(todayCount, 'task')}** due today` : null,
-          overdueCount > 0 ? `**${overdueCount} overdue**` : null,
-        ]
-          .filter(Boolean)
-          .join(' and ')
-          .replace(/^./, (c) => c.toUpperCase()) + '.';
+      : capitalize(
+          [
+            todayCount > 0 ? `${plural(todayCount, 'task')} due today` : null,
+            overdueCount > 0 ? `${overdueCount} overdue` : null,
+          ]
+            .filter(Boolean)
+            .join(' and '),
+        ) + '.';
 
   return `Hi ${firstName(context)}! ${status}\n\nAsk me about your tasks, schedule, budget, subjects, notes or focus sessions.`;
 }
 
 function answerFallback(): string {
   return [
-    'Sorry, I can only answer questions about your **GabAi data**: tasks, schedule, subjects, budget, notes and focus sessions.',
+    "I'm not sure how to answer that yet. I can help with your tasks, schedule, subjects, budget, notes and focus sessions.",
     '',
     'Try asking:',
-    '- "What is due today?"',
-    '- "What should I do next?"',
-    '- "How much did I spend this month?"',
+    `${BULLET} "What is due today?"`,
+    `${BULLET} "What should I do next?"`,
+    `${BULLET} "How much did I spend this week?"`,
   ].join('\n');
+}
+
+/** Removes leftover Markdown markers so replies display as clean text. */
+function cleanReply(text: string): string {
+  return text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*\*/g, '');
 }
 
 // ======================================================
@@ -420,9 +500,12 @@ function answer(message: string, context: AssistantContext): string {
   if (has(KEYWORDS.help)) return answerHelp();
 
   // Money
-  if (has(KEYWORDS.expense)) return answerExpenses(context);
-  if (has(KEYWORDS.income)) return answerIncome(context);
+  if (has(KEYWORDS.expense)) return answerExpenses(context, detectPeriod(has));
+  if (has(KEYWORDS.income)) return answerIncome(context, detectPeriod(has));
   if (has(KEYWORDS.budget)) return answerBudget(context);
+
+  // Overview
+  if (has(KEYWORDS.stats)) return answerStats(context);
 
   // Other features
   if (has(KEYWORDS.focus)) return answerFocus(context);
@@ -467,7 +550,7 @@ export class AssistantService {
 
     const context = await assistantRepository.getUserContext(userId);
 
-    return { reply: answer(message, context) };
+    return { reply: cleanReply(answer(message, context)) };
   }
 
   async reset(): Promise<{ message: string }> {
