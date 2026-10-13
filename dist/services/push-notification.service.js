@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { firebaseAdminMessaging } from "../config/firebase-admin.js";
+import { accountService } from "./account.service.js";
 const ANDROID_CHANNEL_ID = "gabai-default";
 const INVALID_TOKEN_CODES = new Set([
     "messaging/registration-token-not-registered",
@@ -91,6 +92,10 @@ export async function sendPushNotification(input) {
  */
 export async function sendPushNotificationSafely(input) {
     try {
+        // Respect the user's notification preferences.
+        if (!(await accountService.isPushAllowed(input.userId, input.type))) {
+            return;
+        }
         await sendPushNotification(input);
     }
     catch (error) {
