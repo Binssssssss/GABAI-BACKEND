@@ -1,4 +1,5 @@
 import { focusSessionRepository } from "../repositories/focus-session.repository.js";
+import { sendPushNotificationSafely } from "./push-notification.service.js";
 const MANILA_TIME_ZONE = "Asia/Manila";
 class FocusSessionService {
     /**
@@ -171,6 +172,18 @@ class FocusSessionService {
             endedAt: new Date(),
         });
         const updatedSession = await this.getOwnedSession(userId, sessionId);
+        await sendPushNotificationSafely({
+            userId,
+            title: "Focus Session Completed",
+            message: session.subject?.trim()
+                ? `Great work! Your focus session for "${session.subject}" is complete.`
+                : "Great work! Your focus session is complete.",
+            type: "focus_session_completed",
+            data: {
+                sessionId,
+                durationMinutes: String(Math.round(session.duration / 60)),
+            },
+        });
         return this.toFocusSessionResponse(updatedSession);
     }
     /**

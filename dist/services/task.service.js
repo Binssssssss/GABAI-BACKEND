@@ -1,4 +1,5 @@
 import { taskRepository } from "../repositories/task.repository.js";
+import { sendPushNotificationSafely } from "./push-notification.service.js";
 class AppError extends Error {
     statusCode;
     constructor(message, statusCode) {
@@ -204,7 +205,18 @@ export class TaskService {
             throw new AppError("Task title is required.", 400);
         }
         const normalizedData = normalizeSubTasks(data);
-        return taskRepository.create(userId.trim(), normalizedData);
+        const createdTask = await taskRepository.create(userId.trim(), normalizedData);
+        await sendPushNotificationSafely({
+            userId: userId.trim(),
+            title: "Task Created",
+            message: `Your task "${createdTask.title}" has been created successfully.`,
+            type: "task_created",
+            taskId: createdTask.id,
+            data: {
+                taskId: createdTask.id,
+            },
+        });
+        return createdTask;
     }
     // ===============================
     // UPDATE TASK
@@ -303,6 +315,17 @@ export class TaskService {
         if (result.count === 0) {
             throw new AppError("No selected tasks were found.", 404);
         }
+        await sendPushNotificationSafely({
+            userId,
+            title: "Tasks Completed",
+            message: result.count === 1
+                ? "You completed 1 task. Great job!"
+                : `You completed ${result.count} tasks. Great job!`,
+            type: "task_completed",
+            data: {
+                count: String(result.count),
+            },
+        });
         return {
             count: result.count,
             message: `${result.count} task${result.count === 1 ? "" : "s"} completed successfully.`,
