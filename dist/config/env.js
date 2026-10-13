@@ -8,11 +8,11 @@ const envSchema = z.object({
     JWT_REFRESH_SECRET: z.string().min(1, "JWT_REFRESH_SECRET is required"),
     JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
     JWT_REFRESH_EXPIRES_IN: z.string().default("30d"),
-    AI_PROVIDER: z.enum(["openai", "gemini"]).default("openai"),
+    AI_PROVIDER: z.enum(["openai", "gemini"]).default("gemini"),
     OPENAI_API_KEY: z.string().optional(),
     OPENAI_MODEL: z.string().default("gpt-4o-mini"),
     GEMINI_API_KEY: z.string().optional(),
-    GEMINI_MODEL: z.string().default("gemini-1.5-flash"),
+    GEMINI_MODEL: z.string().default("gemini-3.8-flash"),
     CLIENT_URL: z.string().default("http://localhost:8081"),
 });
 const parsed = envSchema.safeParse(process.env);
