@@ -9,6 +9,8 @@ export const transactionRepository = {
         amount: data.amount,
         type: data.type,
         category: data.category,
+        // Save the date the user picked (falls back to now)
+        date: data.date ? new Date(data.date) : new Date(),
         userId,
       },
     });
@@ -19,9 +21,8 @@ export const transactionRepository = {
       where: {
         userId,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      // Newest transaction date first
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
     });
   },
 
@@ -54,6 +55,7 @@ export const transactionRepository = {
         ...(data.amount !== undefined && { amount: data.amount }),
         ...(data.type !== undefined && { type: data.type }),
         ...(data.category !== undefined && { category: data.category }),
+        ...(data.date !== undefined && { date: new Date(data.date) }),
       },
     });
   },

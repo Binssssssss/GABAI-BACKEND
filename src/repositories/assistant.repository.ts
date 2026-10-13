@@ -142,7 +142,8 @@ export class AssistantRepository {
       wallet: {
         totalIncome,
         totalExpenses,
-        balance: totalIncome - totalExpenses,
+        // Never report a negative balance.
+        balance: Math.max(0, totalIncome - totalExpenses),
       },
     };
   }
