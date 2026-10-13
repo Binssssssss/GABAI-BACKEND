@@ -15,6 +15,7 @@ import noteRoutes from './note.routes';
 import assistantRoutes from './assistant.routes';
 import emailRoutes from './email.routes';
 import pushTokenRoutes from "./push-token.routes";
+import accountRoutes from "./account.routes";
 const router = Router();
 
 
@@ -35,4 +36,5 @@ router.use('/notes', noteRoutes);
 router.use('/assistant', assistantRoutes);
 router.use('/email', emailRoutes);
 router.use("/notifications/push-token", pushTokenRoutes);
+router.use("/account", accountRoutes);
 export default router;

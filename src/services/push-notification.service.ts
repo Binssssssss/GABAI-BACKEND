@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { firebaseAdminMessaging } from "@/config/firebase-admin";
+import { accountService } from "@/services/account.service";
+
 
 export type PushNotificationInput = {
   userId: string;
@@ -144,6 +146,11 @@ export async function sendPushNotificationSafely(
   input: PushNotificationInput,
 ): Promise<void> {
   try {
+    // Respect the user's notification preferences.
+    if (!(await accountService.isPushAllowed(input.userId, input.type))) {
+      return;
+    }
+
     await sendPushNotification(input);
   } catch (error) {
     console.error(
