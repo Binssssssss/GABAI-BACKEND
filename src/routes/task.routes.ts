@@ -1,3 +1,4 @@
+
 import { Router } from "express";
 import { z } from "zod";
 
@@ -29,7 +30,6 @@ router.get(
 
 // ===============================
 // GET TASK ANALYTICS
-// IMPORTANT: BEFORE /:id
 // ===============================
 
 router.get(
@@ -39,8 +39,18 @@ router.get(
 );
 
 // ===============================
-// GET TASKS BY FILTER
+// GET TASK RECOMMENDATION
 // IMPORTANT: BEFORE /:id
+// ===============================
+
+router.get(
+  "/recommendation",
+  authMiddleware,
+  taskController.getRecommendation.bind(taskController),
+);
+
+// ===============================
+// GET TASKS BY FILTER
 // ===============================
 
 router.get(
@@ -51,7 +61,6 @@ router.get(
 
 // ===============================
 // GET UPCOMING DEADLINES
-// IMPORTANT: BEFORE /:id
 // ===============================
 
 router.get(
@@ -75,7 +84,6 @@ router.get(
 
 // ===============================
 // GET TASKS BY DATE
-// IMPORTANT: BEFORE /:id
 // ===============================
 
 router.get(
@@ -160,8 +168,11 @@ router.patch(
 
 // ===============================
 // GET TASK BY ID
+<<<<<<< HEAD
 // IMPORTANT: KEEP BEFORE
 // PARAMETER-SPECIFIC PUT/DELETE
+=======
+>>>>>>> c238e72cc70917092a5cebc81eab4ab660d81aee
 // ===============================
 
 router.get(
@@ -187,7 +198,15 @@ router.put(
 // ===============================
 // DELETE TASK
 // ===============================
+// ===============================
+// UPDATE TASK (PARTIAL)
+// ===============================
 
+router.patch(
+  "/:id",
+  authMiddleware,
+  taskController.updateTask.bind(taskController),
+);
 router.delete(
   "/:id",
   authMiddleware,
@@ -197,4 +216,7 @@ router.delete(
 );
 
 export default router;
+<<<<<<< HEAD
 
+=======
+>>>>>>> c238e72cc70917092a5cebc81eab4ab660d81aee

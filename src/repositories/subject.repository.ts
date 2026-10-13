@@ -6,7 +6,7 @@ export const subjectRepository = {
    * Get all subjects belonging to a specific user.
    */
   findAllByUser(userId: string) {
-    return prisma.subjects.findMany({
+    return prisma.subject.findMany({
       where: {
         userId,
       },
@@ -20,7 +20,7 @@ export const subjectRepository = {
    * Get one subject belonging to a specific user.
    */
   findById(userId: string, subjectId: string) {
-    return prisma.subjects.findFirst({
+    return prisma.subject.findFirst({
       where: {
         id: subjectId,
         userId,
@@ -32,7 +32,7 @@ export const subjectRepository = {
    * Create a subject for a specific user.
    */
   create(userId: string, name: string) {
-    return prisma.subjects.create({
+    return prisma.subject.create({
       data: {
         id: randomUUID(),
         name,
@@ -46,7 +46,7 @@ export const subjectRepository = {
    * Update a subject belonging to a specific user.
    */
   update(userId: string, subjectId: string, name: string) {
-    return prisma.subjects.updateMany({
+    return prisma.subject.updateMany({
       where: {
         id: subjectId,
         userId,
@@ -61,7 +61,7 @@ export const subjectRepository = {
    * Delete a subject belonging to a specific user.
    */
   delete(userId: string, subjectId: string) {
-    return prisma.subjects.deleteMany({
+    return prisma.subject.deleteMany({
       where: {
         id: subjectId,
         userId,

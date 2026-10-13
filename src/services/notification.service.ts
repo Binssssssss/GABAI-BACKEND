@@ -71,3 +71,25 @@ export const deleteNotification = async (
     userId
   );
 };
+
+// --------------------------------------------------
+// PUSH TOKEN
+// --------------------------------------------------
+
+export const registerPushToken = async (
+  userId: string,
+  token: string,
+  platform: string
+) => {
+  return notificationRepository.registerPushToken(
+    userId,
+    token,
+    platform
+  );
+};
+
+export const getUserPushTokens = async (
+  userId: string
+) => {
+  return notificationRepository.getUserPushTokens(userId);
+};

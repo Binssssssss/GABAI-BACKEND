@@ -13,11 +13,14 @@ import todaysFocusRoutes from "./todays-focus.routes";
 import transactionRoutes from "./transaction.routes";
 import noteRoutes from './note.routes';
 import assistantRoutes from './assistant.routes';
+import emailRoutes from './email.routes';
+import pushTokenRoutes from "./push-token.routes";
+import accountRoutes from "./account.routes";
 const router = Router();
 
 
 
-router.use("/academic-pressure", academicPressureRoutes);
+
 router.use("/auth", authRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/notifications", notificationRoutes);
@@ -31,4 +34,7 @@ router.use("/dashboard/todays-focus", todaysFocusRoutes);
 router.use("/transactions", transactionRoutes);
 router.use('/notes', noteRoutes);
 router.use('/assistant', assistantRoutes);
+router.use('/email', emailRoutes);
+router.use("/notifications/push-token", pushTokenRoutes);
+router.use("/account", accountRoutes);
 export default router;

@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import * as academicPressureController from "@/controllers/academicPressure.controller";
 
-import { authMiddleware } from "@/middlewares/authenticate-token";
+import { authMiddleware } from "@/middleware/auth.middleware";
 
 const router = Router();
 

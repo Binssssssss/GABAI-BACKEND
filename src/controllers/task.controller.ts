@@ -1,60 +1,56 @@
-import {
-  Request,
-  Response,
-  NextFunction,
-} from "express";
+import { Request, Response, NextFunction } from "express";
 
-import {
-  taskService,
-} from "../services/task.service";
+import { taskService } from "../services/task.service";
+
+// ===============================
+// HELPERS
+// ===============================
+
+function getUserId(req: Request): string | undefined {
+  return typeof req.user?.id === "string" ? req.user.id : undefined;
+}
+
+function getParam(value: string | string[] | undefined): string | undefined {
+  const parsed = Array.isArray(value) ? value[0] : value;
+  return typeof parsed === "string" && parsed.trim() !== ""
+    ? parsed
+    : undefined;
+}
+
+function unauthorized(res: Response) {
+  return res.status(401).json({
+    success: false,
+    message: "Unauthorized",
+  });
+}
 
 export class TaskController {
   // ===============================
   // GET ALL TASKS
   // ===============================
 
-  async getAllTasks(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async getAllTasks(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
 
       const search =
-        typeof req.query.search === "string"
-          ? req.query.search
-          : undefined;
+        typeof req.query.search === "string" ? req.query.search : undefined;
 
       const category =
-        typeof req.query.category === "string"
-          ? req.query.category
-          : undefined;
+        typeof req.query.category === "string" ? req.query.category : undefined;
 
       const date =
-        typeof req.query.date === "string"
-          ? req.query.date
-          : undefined;
+        typeof req.query.date === "string" ? req.query.date : undefined;
 
-      const tasks =
-        await taskService.getAllTasks(
-          userId,
-          {
-            search,
-            category,
-            date,
-          },
-        );
+      const tasks = await taskService.getAllTasks(userId, {
+        search,
+        category,
+        date,
+      });
 
       return res.status(200).json({
         success: true,
@@ -66,37 +62,44 @@ export class TaskController {
   }
 
   // ===============================
+  // GET TASK RECOMMENDATION
+  // ===============================
+
+  async getRecommendation(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = getUserId(req);
+
+      if (!userId) {
+        return unauthorized(res);
+      }
+
+      const recommendation = await taskService.getRecommendation(userId);
+
+      return res.status(200).json({
+        success: true,
+        data: recommendation,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ===============================
   // GET TASKS BY FILTER
   // ===============================
 
-  async getTasksByFilter(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async getTasksByFilter(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
 
       const filter =
-        typeof req.query.filter === "string"
-          ? req.query.filter
-          : "all";
+        typeof req.query.filter === "string" ? req.query.filter : "all";
 
-      const tasks =
-        await taskService.getTasksByFilter(
-          userId,
-          filter,
-        );
+      const tasks = await taskService.getTasksByFilter(userId, filter);
 
       return res.status(200).json({
         success: true,
@@ -111,39 +114,24 @@ export class TaskController {
   // UPDATE SUBTASK
   // ===============================
 
-  async updateSubTask(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async updateSubTask(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
 
-      const taskId = Array.isArray(req.params.id)
-        ? req.params.id[0]
-        : req.params.id;
+      const taskId = getParam(req.params.id);
 
-      if (typeof taskId !== "string") {
+      if (!taskId) {
         return res.status(400).json({
           success: false,
           message: "Invalid task ID",
         });
       }
 
-      const subTaskId =
-        typeof req.params.subTaskId === "string"
-          ? req.params.subTaskId
-          : undefined;
+      const subTaskId = getParam(req.params.subTaskId);
 
       if (!subTaskId) {
         return res.status(400).json({
@@ -161,20 +149,16 @@ export class TaskController {
         });
       }
 
-      const updatedTask =
-        await taskService.updateSubTask(
-          userId,
-          taskId,
-          subTaskId,
-          {
-            completed,
-          },
-        );
+      const updatedTask = await taskService.updateSubTask(
+        userId,
+        taskId,
+        subTaskId,
+        { completed },
+      );
 
       return res.status(200).json({
         success: true,
-        message:
-          "Subtask updated successfully",
+        message: "Subtask updated successfully",
         data: updatedTask,
       });
     } catch (error) {
@@ -186,28 +170,15 @@ export class TaskController {
   // GET TASKS BY DATE
   // ===============================
 
-  async getTasksByDate(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async getTasksByDate(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
-
-      const date =
-        typeof req.params.date === "string"
-          ? req.params.date
-          : undefined;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
+
+      const date = getParam(req.params.date);
 
       if (!date) {
         return res.status(400).json({
@@ -216,11 +187,7 @@ export class TaskController {
         });
       }
 
-      const tasks =
-        await taskService.getTasksByDate(
-          userId,
-          date,
-        );
+      const tasks = await taskService.getTasksByDate(userId, date);
 
       return res.status(200).json({
         success: true,
@@ -235,79 +202,51 @@ export class TaskController {
   // GET TASK BY ID
   // ===============================
 
-async getTaskById(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    const userId = req.user?.id;
-    const taskId = Array.isArray(req.params.id)
-      ? req.params.id[0]
-      : req.params.id;
+  async getTaskById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = getUserId(req);
 
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
+      if (!userId) {
+        return unauthorized(res);
+      }
+
+      const taskId = getParam(req.params.id);
+
+      if (!taskId) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid task ID",
+        });
+      }
+
+      const task = await taskService.getTaskById(taskId, userId);
+
+      return res.status(200).json({
+        success: true,
+        data: task,
       });
+    } catch (error) {
+      next(error);
     }
-
-    if (!taskId) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid task ID",
-      });
-    }
-
-    console.log("========== CONTROLLER DEBUG ==========");
-    console.log("taskId:", taskId);
-    console.log("userId:", userId);
-    console.log("======================================");
-
-    const task = await taskService.getTaskById(taskId, userId);
-
-    return res.status(200).json({
-      success: true,
-      data: task,
-    });
-  } catch (error) {
-    next(error);
   }
-}
 
   // ===============================
   // CREATE TASK
   // ===============================
 
-  async createTask(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async createTask(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
 
-      const task =
-        await taskService.createTask(
-          userId,
-          req.body,
-        );
+      const task = await taskService.createTask(userId, req.body);
 
       return res.status(201).json({
         success: true,
-        message:
-          "Task created successfully",
+        message: "Task created successfully",
         data: task,
       });
     } catch (error) {
@@ -319,44 +258,28 @@ async getTaskById(
   // UPDATE TASK
   // ===============================
 
-  async updateTask(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async updateTask(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
-
-      const { id } = req.params;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
 
-      if (typeof id !== "string") {
+      const taskId = getParam(req.params.id);
+
+      if (!taskId) {
         return res.status(400).json({
           success: false,
           message: "Invalid task ID",
         });
       }
 
-      const task =
-        await taskService.updateTask(
-          userId,
-          id,
-          req.body,
-        );
+      const task = await taskService.updateTask(userId, taskId, req.body);
 
       return res.status(200).json({
         success: true,
-        message:
-          "Task updated successfully",
+        message: "Task updated successfully",
         data: task,
       });
     } catch (error) {
@@ -368,36 +291,24 @@ async getTaskById(
   // DELETE TASK
   // ===============================
 
-  async deleteTask(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async deleteTask(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
-
-      const { id } = req.params;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
+        return unauthorized(res);
+      }
+
+      const taskId = getParam(req.params.id);
+
+      if (!taskId) {
+        return res.status(400).json({
           success: false,
-          message: "Unauthorized",
+          message: "Invalid task ID",
         });
       }
 
-      const taskId =
-        typeof id === "string"
-          ? id
-          : id[0];
-
-      const result =
-        await taskService.deleteTask(
-          userId,
-          taskId,
-        );
+      const result = await taskService.deleteTask(userId, taskId);
 
       return res.status(200).json({
         success: true,
@@ -412,28 +323,15 @@ async getTaskById(
   // UPCOMING DEADLINES
   // ===============================
 
-  async getUpcomingDeadlines(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async getUpcomingDeadlines(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
 
-      const deadlines =
-        await taskService.getUpcomingDeadlines(
-          userId,
-        );
+      const deadlines = await taskService.getUpcomingDeadlines(userId);
 
       return res.status(200).json({
         success: true,
@@ -448,64 +346,40 @@ async getTaskById(
   // RESCHEDULE TASK
   // ===============================
 
-  async rescheduleTask(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async rescheduleTask(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
 
-      const taskId = Array.isArray(req.params.id)
-        ? req.params.id[0]
-        : req.params.id;
+      const taskId = getParam(req.params.id);
 
-      if (typeof taskId !== "string") {
+      if (!taskId) {
         return res.status(400).json({
           success: false,
           message: "Invalid task ID",
         });
       }
 
-      const {
-        dueDate,
-        dueTime,
-      } = req.body;
+      const { dueDate, dueTime } = req.body;
 
-      if (
-        typeof dueDate !== "string" ||
-        !dueDate.trim()
-      ) {
+      if (typeof dueDate !== "string" || !dueDate.trim()) {
         return res.status(400).json({
           success: false,
           message: "dueDate is required",
         });
       }
 
-      const updatedTask =
-        await taskService.rescheduleTask(
-          userId,
-          taskId,
-          {
-            dueDate,
-            dueTime,
-          },
-        );
+      const updatedTask = await taskService.rescheduleTask(userId, taskId, {
+        dueDate,
+        dueTime,
+      });
 
       return res.status(200).json({
         success: true,
-        message:
-          "Task rescheduled successfully",
+        message: "Task rescheduled successfully",
         data: updatedTask,
       });
     } catch (error) {
@@ -517,22 +391,12 @@ async getTaskById(
   // CONVERT NOTE TO TASK
   // ===============================
 
-  async convertNoteToTask(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async convertNoteToTask(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
 
       const {
@@ -553,20 +417,14 @@ async getTaskById(
         });
       }
 
-      if (
-        typeof title !== "string" ||
-        !title.trim()
-      ) {
+      if (typeof title !== "string" || !title.trim()) {
         return res.status(400).json({
           success: false,
           message: "Task title is required",
         });
       }
 
-      if (
-        typeof subject !== "string" ||
-        !subject.trim()
-      ) {
+      if (typeof subject !== "string" || !subject.trim()) {
         return res.status(400).json({
           success: false,
           message: "Subject is required",
@@ -580,42 +438,25 @@ async getTaskById(
         });
       }
 
-      const task =
-        await taskService.createTask(
-          userId,
-          {
-            title: title.trim(),
-            description:
-              typeof description === "string"
-                ? description
-                : "",
-            subject: subject.trim(),
-            priority,
-            dueDate:
-              typeof dueDate === "string"
-                ? dueDate
-                : new Date(
-                    Date.now() +
-                      86400000 * 2,
-                  )
-                    .toISOString()
-                    .split("T")[0],
-            dueTime:
-              typeof dueTime === "string"
-                ? dueTime
-                : "18:00",
-            hasReminder:
-              typeof hasReminder === "boolean"
-                ? hasReminder
-                : false,
-            subTasks: [],
-          },
-        );
+      const task = await taskService.createTask(userId, {
+        title: title.trim(),
+        description: typeof description === "string" ? description : "",
+        subject: subject.trim(),
+        priority,
+        dueDate:
+          typeof dueDate === "string"
+            ? dueDate
+            : new Date(Date.now() + 86400000 * 2)
+                .toISOString()
+                .split("T")[0],
+        dueTime: typeof dueTime === "string" ? dueTime : "18:00",
+        hasReminder: typeof hasReminder === "boolean" ? hasReminder : false,
+        subTasks: [],
+      });
 
       return res.status(201).json({
         success: true,
-        message:
-          "Note converted to task successfully",
+        message: "Note converted to task successfully",
         data: task,
       });
     } catch (error) {
@@ -627,29 +468,15 @@ async getTaskById(
   // BULK COMPLETE TASKS
   // ===============================
 
-  async bulkCompleteTasks(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async bulkCompleteTasks(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
 
-      const result =
-        await taskService.bulkComplete(
-          req.body,
-          userId,
-        );
+      const result = await taskService.bulkComplete(req.body, userId);
 
       return res.status(200).json({
         success: true,
@@ -664,29 +491,15 @@ async getTaskById(
   // BULK DELETE TASKS
   // ===============================
 
-  async bulkDeleteTasks(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async bulkDeleteTasks(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
 
-      const result =
-        await taskService.bulkDelete(
-          req.body,
-          userId,
-        );
+      const result = await taskService.bulkDelete(req.body, userId);
 
       return res.status(200).json({
         success: true,
@@ -737,33 +550,19 @@ async getTaskById(
   // GET TASK ANALYTICS
   // ===============================
 
-  async getAnalytics(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async getAnalytics(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId =
-        typeof req.user?.id === "string"
-          ? req.user.id
-          : undefined;
+      const userId = getUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return unauthorized(res);
       }
 
-      const analytics =
-        await taskService.getAnalytics(
-          userId,
-        );
+      const analytics = await taskService.getAnalytics(userId);
 
       return res.status(200).json({
         success: true,
-        message:
-          "Task analytics retrieved successfully",
+        message: "Task analytics retrieved successfully",
         data: analytics,
       });
     } catch (error) {
@@ -776,5 +575,4 @@ async getTaskById(
 // CONTROLLER INSTANCE
 // ===============================
 
-export const taskController =
-  new TaskController();
+export const taskController = new TaskController();
