@@ -11,8 +11,39 @@ function startOfMonthManila(): Date {
   return new Date(`${yearMonth}-01T00:00:00+08:00`);
 }
 
+/** Start of a Manila calendar day, offset from today. */
+function startOfDayManila(offsetDays = 0): Date {
+  const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(
+    new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000),
+  ); // e.g. "2026-10-13"
+
+  return new Date(`${day}T00:00:00+08:00`);
+}
+
+/** Monday 00:00 of the current week in Philippine time. */
+function startOfWeekManila(): Date {
+  const weekday = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Manila',
+    weekday: 'short',
+  }).format(new Date());
+
+  const daysSinceMonday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(weekday);
+
+  return startOfDayManila(-Math.max(daysSinceMonday, 0));
+}
+
 export class AssistantRepository {
   async getUserContext(userId: string) {
+    const periodStarts = {
+      today: startOfDayManila(0),
+      week: startOfWeekManila(),
+      month: startOfMonthManila(),
+    };
+
+    // Early in the month, this week can start in the previous month.
+    const earliest =
+      periodStarts.week < periodStarts.month ? periodStarts.week : periodStarts.month;
+
     const [
       user,
       pendingTasks,
@@ -71,9 +102,9 @@ export class AssistantRepository {
         select: { title: true, category: true, isPinned: true },
       }),
 
-      // This month's transactions (for "how much did I spend")
+      // This month's and this week's transactions (for "how much did I spend")
       prisma.transaction.findMany({
-        where: { userId, date: { gte: startOfMonthManila() } },
+        where: { userId, date: { gte: earliest } },
         orderBy: { date: 'desc' },
         select: {
           title: true,
@@ -106,7 +137,8 @@ export class AssistantRepository {
       focusSessions,
       noteCount,
       recentNotes,
-      monthTransactions,
+      recentTransactions: monthTransactions,
+      periodStarts,
       wallet: {
         totalIncome,
         totalExpenses,
