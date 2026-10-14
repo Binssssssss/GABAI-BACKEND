@@ -12,6 +12,102 @@ import {
   BulkTaskInput,
 } from "../types/task.types";
 
+// ===============================
+// "CREATED" NOTIFICATION TEXT
+// ===============================
+
+/** "2026-10-15" -> "today" / "tomorrow" / "Oct 15" (Philippine time). */
+function describeDueDate(dueDate?: string | null): string | null {
+  if (!dueDate || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) return null;
+
+  const manilaDay = (offsetDays: number) =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(
+      new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000),
+    );
+
+  if (dueDate === manilaDay(0)) return "today";
+  if (dueDate === manilaDay(1)) return "tomorrow";
+
+  const [year, month, day] = dueDate.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+/** "09:02" -> "9:02 AM". */
+function describeDueTime(dueTime?: string | null): string | null {
+  const match = dueTime?.trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+
+  const hours = Number(match[1]);
+  const suffix = hours >= 12 ? "PM" : "AM";
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+
+  return `${hour12}:${match[2]} ${suffix}`;
+}
+
+/**
+ * Title and message for the notification sent after creating a task or a
+ * calendar event. Calendar events are stored as tasks with the category in
+ * `subject`, so the wording follows that category.
+ */
+function buildCreatedNotification(task: {
+  title: string;
+  subject?: string | null;
+  dueDate?: string | null;
+  dueTime?: string | null;
+}) {
+  const name = `"${task.title.trim()}"`;
+  const date = describeDueDate(task.dueDate);
+  const time = describeDueTime(task.dueTime);
+
+  // "today at 9:02 AM", "Oct 15", or "" when there is no date.
+  const when = date
+    ? time
+      ? `${date} at ${time}`
+      : date
+    : "";
+  const onWhen = !when
+    ? ""
+    : date === "today" || date === "tomorrow"
+      ? ` ${when}`
+      : ` on ${when}`;
+
+  switch ((task.subject ?? "").trim().toLowerCase()) {
+    case "class":
+      return {
+        title: "Class Added",
+        message: `${name} is on your calendar${onWhen}.`,
+      };
+    case "exam":
+      return {
+        title: "Exam Scheduled",
+        message: `${name} is set${onWhen}. You've got this!`,
+      };
+    case "meeting":
+      return {
+        title: "Meeting Scheduled",
+        message: `${name} is set${onWhen}.`,
+      };
+    case "assignment":
+      return {
+        title: "Assignment Added",
+        message: when
+          ? `${name} is due ${when}.`
+          : `${name} was added to your assignments.`,
+      };
+    default:
+      return {
+        title: "Task Added",
+        message: when
+          ? `${name} is due ${when}.`
+          : `${name} was added to your tasks.`,
+      };
+  }
+}
+
 class AppError extends Error {
   statusCode: number;
 
@@ -309,10 +405,12 @@ export class TaskService {
     normalizedData,
   );
 
+  const createdNotice = buildCreatedNotification(createdTask);
+
   await sendPushNotificationSafely({
     userId: userId.trim(),
-    title: "Task Created",
-    message: `Your task "${createdTask.title}" has been created successfully.`,
+    title: createdNotice.title,
+    message: createdNotice.message,
     type: "task_created",
     taskId: createdTask.id,
     data: {
