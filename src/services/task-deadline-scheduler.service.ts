@@ -1,4 +1,3 @@
-
 import { prisma } from "@/lib/prisma";
 import { firebaseAdminMessaging } from "@/config/firebase-admin";
 
@@ -59,6 +58,38 @@ function getDeadlineTimestamp(
   );
 
   return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+/** "3:00 PM" in Philippine time. */
+function formatDeadlineTime(timestamp: number): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: PHILIPPINE_TIMEZONE,
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(timestamp));
+}
+
+/** "today" / "tomorrow" / "Oct 16", in Philippine time. */
+function formatDeadlineDay(timestamp: number, now: number): string {
+  const dayKey = (value: number) =>
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: PHILIPPINE_TIMEZONE,
+    }).format(new Date(value));
+
+  if (dayKey(timestamp) === dayKey(now)) return "today";
+  if (dayKey(timestamp) === dayKey(now + 24 * 60 * 60_000)) return "tomorrow";
+
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: PHILIPPINE_TIMEZONE,
+    month: "short",
+    day: "numeric",
+  }).format(new Date(timestamp));
+}
+
+/** "25 minutes" / "1 minute". */
+function formatMinutesLeft(minutes: number): string {
+  const value = Math.max(1, minutes);
+  return `${value} ${value === 1 ? "minute" : "minutes"}`;
 }
 
 let isChecking = false;
@@ -131,6 +162,11 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
           continue;
         }
 
+        // Exact deadline text, e.g. "today at 3:00 PM" and "25 minutes".
+        const deadlineTime = formatDeadlineTime(deadline);
+        const deadlineDay = formatDeadlineDay(deadline, now);
+        const timeLeft = formatMinutesLeft(minutesUntilDeadline);
+
         const pushTokens = await prisma.pushToken.findMany({
           where: {
             userId: task.userId,
@@ -156,8 +192,8 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
             notification: {
               title: "Upcoming Task Deadline",
               body:
-                `"${task.title}" is due in 30 minutes or less. ` +
-                "Don't forget to finish it!",
+                `"${task.title}" is due ${deadlineDay} at ${deadlineTime} ` +
+                `(${timeLeft} left). Don't forget to finish it!`,
             },
 
             data: {
@@ -235,9 +271,9 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
             taskId: task.id,
             title: "Upcoming Task Deadline",
             message:
-              `"${task.title}" is due in 30 minutes or less.`,
+              `"${task.title}" is due ${deadlineDay} at ${deadlineTime} (${timeLeft} left).`,
             type: "task_deadline",
-            time: "30 minutes before deadline",
+            time: `Due ${deadlineDay} at ${deadlineTime}`,
             icon: "clock",
             iconColor: "#8B5E3C",
           },
