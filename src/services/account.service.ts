@@ -26,7 +26,50 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   leadMinutes: 15,
 };
 
+const PROFILE_SELECT = {
+  id: true,
+  fullName: true,
+  email: true,
+  avatar: true,
+} as const;
+
 class AccountService {
+  async getProfile(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: PROFILE_SELECT,
+    });
+
+    if (!user) throw new AppError("User not found", 404);
+
+    return user;
+  }
+
+  /**
+   * Update the user's name and/or profile photo.
+   * `avatar: null` removes the photo; leaving it out keeps the current one.
+   */
+  async updateProfile(
+    userId: string,
+    data: { fullName?: string; avatar?: string | null },
+  ) {
+    const update: { fullName?: string; avatar?: string | null } = {};
+
+    if (typeof data.fullName === "string") {
+      update.fullName = data.fullName.trim().replace(/\s+/g, " ");
+    }
+
+    if (data.avatar !== undefined) {
+      update.avatar = data.avatar;
+    }
+
+    return prisma.user.update({
+      where: { id: userId },
+      data: update,
+      select: PROFILE_SELECT,
+    });
+  }
+
   // Returns null when the user has never saved preferences.
   async getNotificationPreferences(userId: string) {
     const user = await prisma.user.findUnique({

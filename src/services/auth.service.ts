@@ -100,6 +100,7 @@ async login(input: LoginInput): Promise<LoginResponse> {
       id: user.id,
       fullName: user.fullName,
       email: user.email,
+      avatar: user.avatar ?? null,
     },
   };
 }
@@ -241,6 +242,7 @@ async login(input: LoginInput): Promise<LoginResponse> {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
+        avatar: user.avatar ?? null,
       },
     };
   }

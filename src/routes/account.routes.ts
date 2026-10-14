@@ -18,6 +18,27 @@ const notificationPrefsSchema = z.object({
   leadMinutes: z.union([z.literal(15), z.literal(60), z.literal(1440)]),
 });
 
+// Profile: name and photo. The photo is a small data URL (about 300 KB max).
+const MAX_AVATAR_LENGTH = 400_000;
+
+const updateProfileSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(1, "Name is required")
+    .max(80, "Name is too long")
+    .optional(),
+  avatar: z
+    .string()
+    .max(MAX_AVATAR_LENGTH, "Photo is too large. Please choose a smaller photo.")
+    .regex(/^data:image\/(jpeg|jpg|png|webp);base64,/, "Invalid photo format")
+    .nullable()
+    .optional(),
+});
+
+router.get("/profile", accountController.getProfile);
+router.patch("/profile", validate(updateProfileSchema), accountController.updateProfile);
+
 router.get("/notification-preferences", accountController.getNotificationPreferences);
 router.put(
   "/notification-preferences",

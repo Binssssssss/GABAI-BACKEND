@@ -19,6 +19,8 @@ export interface AuthUser {
   id: string;
   fullName: string;
   email: string;
+  /** Profile photo as a data URL, or null when the user has none. */
+  avatar?: string | null;
 }
 
 export interface LoginResponse {

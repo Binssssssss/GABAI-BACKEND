@@ -3,6 +3,20 @@ import { Request, Response } from "express";
 import { accountService } from "@/services/account.service";
 import { asyncHandler } from "@/utils/helper";
 
+export const getProfile = asyncHandler(
+  async (req: Request, res: Response) => {
+    const data = await accountService.getProfile(req.user.id);
+    return res.status(200).json({ success: true, data });
+  },
+);
+
+export const updateProfile = asyncHandler(
+  async (req: Request, res: Response) => {
+    const data = await accountService.updateProfile(req.user.id, req.body);
+    return res.status(200).json({ success: true, message: "Profile updated.", data });
+  },
+);
+
 export const getNotificationPreferences = asyncHandler(
   async (req: Request, res: Response) => {
     const data = await accountService.getNotificationPreferences(req.user.id);

@@ -13,6 +13,8 @@ model User {
   email       String   @unique
   password    String
   firebaseUid String?  @unique
+  // Small compressed profile photo as a data URL (data:image/jpeg;base64,...)
+  avatar      String?
    notificationPrefs Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
