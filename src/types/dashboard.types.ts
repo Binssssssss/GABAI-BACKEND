@@ -13,6 +13,7 @@ export interface DashboardTask {
   id: string;
   title: string;
   subject: string;
+  dueDate: string;
   dueTime: string;
   priority: DashboardPriority;
   countdown: string;

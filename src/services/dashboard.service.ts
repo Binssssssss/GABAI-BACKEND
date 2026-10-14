@@ -77,6 +77,7 @@ export class DashboardService {
         id: task.id,
         title: task.title,
         subject: task.subject,
+        dueDate: task.dueDate,
         dueTime: task.dueTime,
         priority: this.normalizePriority(
           task.priority,
