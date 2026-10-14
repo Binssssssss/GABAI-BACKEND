@@ -15,6 +15,8 @@ export function errorMiddleware(
   return res.status(err?.statusCode || 500).json({
     success: false,
     message: err?.message || "Something went wrong.",
+    // Extra details for the app, e.g. { code: "EMAIL_NOT_VERIFIED" }.
+    errors: err?.errors,
     error:
       process.env.NODE_ENV === "development"
         ? err?.stack

@@ -57,3 +57,23 @@ export const resetPassword = asyncHandler(
   },
 );
 
+export const verifyEmail = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await authService.verifyEmail(
+      req.body.email,
+      req.body.code,
+    );
+
+    return res.status(200).json(result);
+  },
+);
+
+export const resendVerification = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await authService.resendVerification(
+      req.body.email,
+    );
+
+    return res.status(200).json(result);
+  },
+);

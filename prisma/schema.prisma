@@ -15,6 +15,12 @@ model User {
   firebaseUid String?  @unique
   // Small compressed profile photo as a data URL (data:image/jpeg;base64,...)
   avatar      String?
+  // Email verification (6-digit code sent with Resend)
+  emailVerified             Boolean   @default(false)
+  emailVerificationCode     String?
+  emailVerificationExpires  DateTime?
+  emailVerificationAttempts Int       @default(0)
+  emailVerificationSentAt   DateTime?
    notificationPrefs Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

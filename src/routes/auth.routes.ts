@@ -101,4 +101,31 @@ router.post(
   validate(resetPasswordSchema),
   authController.resetPassword,
 );
+/**
+ * EMAIL VERIFICATION
+ */
+const verifyEmailSchema = z.object({
+  email: z.string().trim().email("Invalid email address"),
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "Enter the 6-digit code"),
+});
+
+router.post(
+  "/verify-email",
+  validate(verifyEmailSchema),
+  authController.verifyEmail,
+);
+
+const resendVerificationSchema = z.object({
+  email: z.string().trim().email("Invalid email address"),
+});
+
+router.post(
+  "/resend-verification",
+  validate(resendVerificationSchema),
+  authController.resendVerification,
+);
+
 export default router;

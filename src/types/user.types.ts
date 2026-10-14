@@ -3,4 +3,9 @@ export interface UserData {
   email: string;
   password: string;
   firebaseUid?: string;
+  emailVerified?: boolean;
+  emailVerificationCode?: string | null;
+  emailVerificationExpires?: Date | null;
+  emailVerificationAttempts?: number;
+  emailVerificationSentAt?: Date | null;
 }
