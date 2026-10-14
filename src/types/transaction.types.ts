@@ -3,6 +3,8 @@ export interface CreateTransactionInput {
   amount: number;
   type: 'expense' | 'income';
   category: string;
+  /** ISO date picked in the app; defaults to now */
+  date?: string;
 }
 
 export interface TransactionResponse {
