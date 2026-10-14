@@ -13,6 +13,8 @@ export class DashboardRepository {
     return prisma.task.findMany({
       where: {
         userId,
+        // Completed tasks leave the dashboard.
+        completed: false,
         OR: [
           {
             dueDate: today,
@@ -96,6 +98,8 @@ export class DashboardRepository {
       where: {
         userId,
         dueDate: today,
+        // Completed tasks leave Today's Schedule.
+        completed: false,
       },
       orderBy: {
         dueTime: "asc",
