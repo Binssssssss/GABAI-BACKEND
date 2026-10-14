@@ -1,4 +1,3 @@
-
 import { taskRepository } from "../repositories/task.repository";
 import { sendPushNotificationSafely } from "@/services/push-notification.service";
 import {
@@ -90,6 +89,15 @@ function buildCreatedNotification(task: {
       return {
         title: "Meeting Scheduled",
         message: `${name} is set${onWhen}.`,
+      };
+    // Other calendar categories (Personal, Focus Session).
+    case "personal":
+    case "focus session":
+      return {
+        title: "Schedule Added",
+        message: when
+          ? `${name} is on your calendar${onWhen}.`
+          : `${name} was added to your calendar.`,
       };
     case "assignment":
       return {
