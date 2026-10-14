@@ -414,22 +414,11 @@ export class DashboardService {
 
   private getTodayDate(): string {
 
-    const now = new Date();
-
-    const year =
-      now.getFullYear();
-
-    const month =
-      String(
-        now.getMonth() + 1,
-      ).padStart(2, "0");
-
-    const day =
-      String(
-        now.getDate(),
-      ).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
+    // Use Philippine time. The server (Render) runs in UTC, so its own
+    // date is a day behind between 12:00 AM and 8:00 AM in the Philippines.
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Manila",
+    }).format(new Date()); // "YYYY-MM-DD"
   }
 
   // ==================================

@@ -47,9 +47,10 @@ export const academicPressureService = {
        * dueTime = "15:30"
        */
       if (task.dueDate) {
+        // Times are entered in Philippine time (UTC+8).
         const dateTimeString = task.dueTime
-          ? `${task.dueDate}T${task.dueTime}`
-          : `${task.dueDate}T23:59:59`;
+          ? `${task.dueDate}T${task.dueTime.slice(0, 5)}:00+08:00`
+          : `${task.dueDate}T23:59:59+08:00`;
 
         const dueDate = new Date(dateTimeString);
 
