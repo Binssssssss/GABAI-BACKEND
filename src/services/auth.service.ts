@@ -6,6 +6,7 @@ import { firebaseAdminAuth } from "@/config/firebase-admin";
 import { authRepository } from "@/repositories/auth.repository";
 import { userRepository } from "@/repositories/user.repository";
 import { sendEmail } from "@/services/email.service";
+import { notifyPasswordChanged } from "@/services/security-notification.service";
 
 import {
   LoginInput,
@@ -324,6 +325,7 @@ async login(input: LoginInput): Promise<LoginResponse> {
       fullName: user.fullName,
       email: user.email,
       avatar: user.avatar ?? null,
+        authProvider: user.authProvider ?? "email",
     },
   };
 }
@@ -433,6 +435,8 @@ async login(input: LoginInput): Promise<LoginResponse> {
         firebaseUid,
         // Google already verified this email address.
         emailVerified: true,
+        // Password is managed by Google, not GabAi.
+        authProvider: "google",
       });
     }
     /*
@@ -472,6 +476,7 @@ async login(input: LoginInput): Promise<LoginResponse> {
         fullName: user.fullName,
         email: user.email,
         avatar: user.avatar ?? null,
+        authProvider: user.authProvider ?? "email",
       },
     };
   }
@@ -482,6 +487,42 @@ async login(input: LoginInput): Promise<LoginResponse> {
     const user = await authRepository.findUserByEmail(
       normalizedEmail,
     );
+
+    /*
+     * Google accounts: their password lives in their Google Account.
+     */
+    if (user && user.authProvider === "google") {
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: "About your GabAi password",
+          text: [
+            `Hello ${user.fullName},`,
+            "",
+            "You sign in to GabAi with Google, so GabAi doesn't keep a separate password for you.",
+            "To change your password, go to your Google Account: https://myaccount.google.com/security",
+            "",
+            "— GabAi Team",
+          ].join("\n"),
+          html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+              <h2>About your GabAi password</h2>
+              <p>Hello ${user.fullName},</p>
+              <p>You sign in to GabAi with <b>Google</b>, so GabAi doesn't keep a separate password for you.</p>
+              <p>To change your password, go to your <a href="https://myaccount.google.com/security">Google Account</a>.</p>
+              <p>— GabAi Team</p>
+            </div>
+          `,
+        });
+      } catch (error) {
+        console.error("❌ Failed to send Google account email:", error);
+      }
+
+      return {
+        message:
+          "If that email is registered, we've sent instructions to it.",
+      };
+    }
 
     /*
      * Do not reveal whether an email is registered.
@@ -611,6 +652,13 @@ GabAi Team
       );
     }
 
+    if (user.authProvider === "google") {
+      throw new AppError(
+        "This account uses Google sign-in. Change your password in your Google Account.",
+        403,
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(
       newPassword,
       SALT_ROUNDS,
@@ -619,6 +667,9 @@ GabAi Team
     await userRepository.update(user.id, {
       password: hashedPassword,
     });
+
+    // Security alert: email + push.
+    await notifyPasswordChanged(user);
 
     return {
       message: "Password reset successfully.",

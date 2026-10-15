@@ -139,6 +139,35 @@ export async function sendPushNotification(
 }
 
 /**
+ * Save a notification to the in-app 🔔 list only (no phone push).
+ * Used for confirmations of things the user just did, e.g. "Task Added".
+ */
+export async function createInAppNotification(
+  input: PushNotificationInput,
+): Promise<void> {
+  try {
+    await prisma.notification.create({
+      data: {
+        userId: input.userId,
+        title: input.title,
+        message: input.message,
+        type: input.type,
+        time: input.time ?? "Just now",
+        icon: input.icon ?? "bell",
+        iconColor: input.iconColor ?? "#8B5E3C",
+        taskId: input.taskId,
+        assignmentId: input.assignmentId,
+      },
+    });
+  } catch (error) {
+    console.error(
+      `[InAppNotification] Failed to save "${input.type}":`,
+      error,
+    );
+  }
+}
+
+/**
  * Prevent notification failures from interrupting
  * the main app operation.
  */

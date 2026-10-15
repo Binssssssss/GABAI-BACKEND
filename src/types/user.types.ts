@@ -3,6 +3,7 @@ export interface UserData {
   email: string;
   password: string;
   firebaseUid?: string;
+  authProvider?: string;
   emailVerified?: boolean;
   emailVerificationCode?: string | null;
   emailVerificationExpires?: Date | null;

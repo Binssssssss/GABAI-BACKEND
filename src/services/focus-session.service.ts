@@ -1,5 +1,5 @@
 import { focusSessionRepository } from "../repositories/focus-session.repository";
-import { sendPushNotificationSafely } from "@/services/push-notification.service";
+import { createInAppNotification } from "@/services/push-notification.service";
 import {
   AmbientSound,
   FocusMode,
@@ -430,7 +430,9 @@ class FocusSessionService {
     sessionId,
   );
 
-  await sendPushNotificationSafely({
+  // The phone already shows "Time's up!" (local notification),
+  // so this is saved to the 🔔 list only.
+  await createInAppNotification({
     userId,
     title: "Focus Session Completed",
     message: session.subject?.trim()

@@ -1,9 +1,30 @@
 import { prisma } from "@/lib/prisma";
 import { firebaseAdminMessaging } from "@/config/firebase-admin";
+import { sendPushNotificationSafely } from "@/services/push-notification.service";
 
 const CHECK_INTERVAL_MS = 60_000;
 const REMINDER_WINDOW_MS = 30 * 60_000;
 const PHILIPPINE_TIMEZONE = "Asia/Manila";
+
+/* Only alert about tasks that became overdue within this window. */
+const OVERDUE_LOOKBACK_MS = 24 * 60 * 60_000;
+
+/*
+ * Calendar events are stored as tasks with the category as the subject.
+ * Their reminders come from the phone ("Midterm Exam in 1 hour"),
+ * so the task deadline/overdue pushes skip them.
+ */
+const CALENDAR_CATEGORIES = new Set([
+  "assignment",
+  "exam",
+  "class",
+  "meeting",
+  "personal",
+  "focus session",
+]);
+
+const isCalendarEvent = (subject?: string | null) =>
+  CALENDAR_CATEGORIES.has(String(subject ?? "").trim().toLowerCase());
 
 // Interpret task dates and times in Philippine time (UTC+8).
 function getDeadlineTimestamp(
@@ -127,6 +148,9 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
     );
 
     for (const task of tasks) {
+      // Calendar events get their own reminder on the phone.
+      if (isCalendarEvent(task.subject)) continue;
+
       try {
         const deadline = getDeadlineTimestamp(
           task.dueDate,
@@ -299,6 +323,7 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
         );
       }
     }
+    await checkOverdueTasks(now);
   } catch (error) {
     console.error(
       "[DeadlineReminder] Scheduler check failed:",
@@ -306,6 +331,61 @@ export async function checkTaskDeadlineReminders(): Promise<void> {
     );
   } finally {
     isChecking = false;
+  }
+}
+
+/**
+ * "⚠️ Task overdue": sent once when a task passes its due time
+ * and is still not completed. Tasks only (not calendar events).
+ */
+async function checkOverdueTasks(now: number): Promise<void> {
+  const tasks = await prisma.task.findMany({
+    where: {
+      completed: false,
+      overdueNotifiedAt: null,
+    },
+  });
+
+  for (const task of tasks) {
+    if (isCalendarEvent(task.subject)) continue;
+
+    try {
+      const deadline = getDeadlineTimestamp(task.dueDate, task.dueTime);
+
+      // Not overdue yet, or overdue for too long (no old spam).
+      if (
+        deadline === null ||
+        deadline > now ||
+        deadline < now - OVERDUE_LOOKBACK_MS
+      ) {
+        continue;
+      }
+
+      const hasTime = Boolean(task.dueTime?.trim());
+      const day = formatDeadlineDay(deadline, now);
+      const when = hasTime ? `${day} at ${formatDeadlineTime(deadline)}` : day;
+
+      await sendPushNotificationSafely({
+        userId: task.userId,
+        title: "⚠️ Task overdue",
+        message: `"${task.title}" was due ${when}. Finish it or set a new date.`,
+        type: "task_overdue",
+        taskId: task.id,
+        time: `Due ${when}`,
+        icon: "alert-circle",
+        iconColor: "#EF4444",
+        data: { taskId: task.id },
+      });
+
+      await prisma.task.update({
+        where: { id: task.id },
+        data: { overdueNotifiedAt: new Date() },
+      });
+
+      console.log(`[OverdueReminder] Sent for task ${task.id}.`);
+    } catch (error) {
+      console.error(`[OverdueReminder] Failed for task ${task.id}:`, error);
+    }
   }
 }
 

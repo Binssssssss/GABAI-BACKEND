@@ -1,5 +1,6 @@
 import { taskRepository } from "../repositories/task.repository";
-import { sendPushNotificationSafely } from "@/services/push-notification.service";
+import { createInAppNotification } from "@/services/push-notification.service";
+import { prisma } from "@/lib/prisma";
 import {
   CreateTaskInput,
   UpdateTaskInput,
@@ -113,6 +114,18 @@ function buildCreatedNotification(task: {
           ? `${name} is due ${when}.`
           : `${name} was added to your tasks.`,
       };
+  }
+}
+
+/* Let the scheduler send the deadline/overdue alerts again. */
+async function resetDeadlineAlerts(taskId: string) {
+  try {
+    await prisma.task.update({
+      where: { id: taskId },
+      data: { reminderSentAt: null, overdueNotifiedAt: null },
+    });
+  } catch (error) {
+    console.error("[Task] Could not reset deadline alerts:", error);
   }
 }
 
@@ -415,7 +428,8 @@ export class TaskService {
 
   const createdNotice = buildCreatedNotification(createdTask);
 
-  await sendPushNotificationSafely({
+  // Confirmation only: saved to the 🔔 list, not pushed to the phone.
+  await createInAppNotification({
     userId: userId.trim(),
     title: createdNotice.title,
     message: createdNotice.message,
@@ -459,6 +473,14 @@ export class TaskService {
 
     if (!updatedTask) {
       throw new AppError("Task not found.", 404);
+    }
+
+    // New due date/time: allow the deadline and overdue alerts again.
+    if (
+      (data.dueDate !== undefined && data.dueDate !== existingTask.dueDate) ||
+      (data.dueTime !== undefined && data.dueTime !== existingTask.dueTime)
+    ) {
+      await resetDeadlineAlerts(normalizedTaskId);
     }
 
     return updatedTask;
@@ -533,6 +555,8 @@ export class TaskService {
     if (!updatedTask) {
       throw new AppError("Task not found.", 404);
     }
+
+    await resetDeadlineAlerts(normalizedTaskId);
 
     return updatedTask;
   }
@@ -625,7 +649,7 @@ export class TaskService {
     );
   }
 
-  await sendPushNotificationSafely({
+  await createInAppNotification({
     userId,
     title: "Tasks Completed",
     message:

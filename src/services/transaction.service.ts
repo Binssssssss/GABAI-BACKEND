@@ -6,8 +6,12 @@ import {
 } from "../types/transaction.types";
 
 import {
+  createInAppNotification,
   sendPushNotificationSafely,
 } from "@/services/push-notification.service";
+
+/** Push a "Low balance" alert when the balance drops below this. */
+const LOW_BALANCE_THRESHOLD = 100;
 
 const mapTransaction = (
   transaction: {
@@ -121,7 +125,8 @@ export const createTransaction = async (
     date: validateDate(data.date),
   });
 
-  await sendPushNotificationSafely({
+  // Confirmation only: saved to the 🔔 list, not pushed to the phone.
+  await createInAppNotification({
     userId,
     title:
       transaction.type === "income"
@@ -134,6 +139,29 @@ export const createTransaction = async (
       transactionType: transaction.type,
     },
   });
+
+  // Low balance alert: only when this expense crosses below the threshold.
+  if (transaction.type === "expense") {
+    try {
+      const newBalance = await getRawBalance(userId);
+      const before = roundMoney(newBalance + transaction.amount);
+
+      if (newBalance < LOW_BALANCE_THRESHOLD && before >= LOW_BALANCE_THRESHOLD) {
+        await sendPushNotificationSafely({
+          userId,
+          title: "💳 Low balance",
+          message: `Your wallet balance is now ${formatAmount(
+            Math.max(0, newBalance),
+          )}. Plan your spending for the rest of the week.`,
+          type: "wallet_low_balance",
+          icon: "credit-card",
+          iconColor: "#F59E0B",
+        });
+      }
+    } catch (error) {
+      console.error("[Wallet] Low balance check failed:", error);
+    }
+  }
 
   return mapTransaction(transaction);
 };
@@ -203,7 +231,7 @@ export const updateTransaction = async (
       },
     );
 
-  await sendPushNotificationSafely({
+  await createInAppNotification({
     userId,
     title: "Wallet Transaction Updated",
     message: `${transaction.title} was updated to ${formatAmount(transaction.amount)}.`,
@@ -245,7 +273,7 @@ export const deleteTransaction = async (
 
   await transactionRepository.delete(id, userId);
 
-  await sendPushNotificationSafely({
+  await createInAppNotification({
     userId,
     title: "Wallet Transaction Deleted",
     message: `${existing.title} (${formatAmount(existing.amount)}) was deleted.`,

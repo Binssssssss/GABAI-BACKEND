@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/config/prisma";
 import { firebaseAdminAuth } from "@/config/firebase-admin";
 import { AppError } from "@/utils/response";
+import { notifyPasswordChanged } from "@/services/security-notification.service";
 
 const SALT_ROUNDS = 10;
 
@@ -31,6 +32,7 @@ const PROFILE_SELECT = {
   fullName: true,
   email: true,
   avatar: true,
+  authProvider: true,
 } as const;
 
 class AccountService {
@@ -110,7 +112,10 @@ class AccountService {
 
     const kind = (type ?? "").toLowerCase();
 
-    if ((kind.includes("deadline") || kind.includes("due")) && !prefs.taskDeadlines) {
+    if (
+      (kind.includes("deadline") || kind.includes("due") || kind.includes("overdue")) &&
+      !prefs.taskDeadlines
+    ) {
       return false;
     }
 
@@ -126,15 +131,18 @@ class AccountService {
 
     if (!user) throw new AppError("User not found", 404);
 
+    // Google accounts manage their password in their Google Account.
+    if (user.authProvider === "google") {
+      throw new AppError(
+        "This account uses Google sign-in. Change your password in your Google Account.",
+        403,
+      );
+    }
+
     const isValid = await bcrypt.compare(currentPassword, user.password);
 
     if (!isValid) {
-      throw new AppError(
-        user.firebaseUid
-          ? "Current password is incorrect. If you signed up with Google, use Forgot Password on the login screen to set a password first."
-          : "Current password is incorrect.",
-        400,
-      );
+      throw new AppError("Current password is incorrect.", 400);
     }
 
     if (currentPassword === newPassword) {
@@ -145,6 +153,9 @@ class AccountService {
       where: { id: userId },
       data: { password: await bcrypt.hash(newPassword, SALT_ROUNDS) },
     });
+
+    // Security alert: email + push.
+    await notifyPasswordChanged(user);
 
     return { message: "Password changed successfully." };
   }

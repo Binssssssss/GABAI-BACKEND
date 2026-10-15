@@ -21,6 +21,8 @@ export interface AuthUser {
   email: string;
   /** Profile photo as a data URL, or null when the user has none. */
   avatar?: string | null;
+  /** "email" (own password) or "google" (password managed by Google). */
+  authProvider?: string;
 }
 
 export interface LoginResponse {
