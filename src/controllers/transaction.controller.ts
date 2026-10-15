@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import {
   createTransaction as createTransactionService,
   getTransactions as getTransactionsService,
+  getTransactionsPage as getTransactionsPageService,
   getTransaction as getTransactionService,
   updateTransaction as updateTransactionService,
   deleteTransaction as deleteTransactionService,
@@ -62,13 +63,36 @@ export async function getTransactions(
       });
     }
 
+    // Paged: GET /transactions?limit=6&offset=0
+    // (without `limit` the full list is returned, as before).
+    if (req.query.limit !== undefined) {
+      const limit = Number(req.query.limit);
+      const offset = Number(req.query.offset ?? 0);
+
+      if (
+        !Number.isFinite(limit) ||
+        limit < 1 ||
+        !Number.isFinite(offset) ||
+        offset < 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "limit must be 1 or more and offset 0 or more",
+        });
+      }
+
+      const page = await getTransactionsPageService(userId, limit, offset);
+
+      return res.status(200).json({
+        success: true,
+        message: "Transactions retrieved successfully",
+        data: page.transactions,
+        pagination: page.pagination,
+      });
+    }
+
     const transactions =
       await getTransactionsService(userId);
-
-    console.log(
-      "GET TRANSACTIONS RESULT:",
-      transactions
-    );
 
     return res.status(200).json({
       success: true,

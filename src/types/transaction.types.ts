@@ -18,6 +18,18 @@ export interface TransactionResponse {
   createdAt: Date;
   updatedAt: Date;
 }
+/** One page of transactions (GET /transactions?limit=&offset=). */
+export interface TransactionPage {
+  transactions: TransactionResponse[];
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+    hasMore: boolean;
+    nextOffset: number | null;
+  };
+}
+
 export interface WalletBalanceResponse {
   netBalance: number;
   totalIncome: number;

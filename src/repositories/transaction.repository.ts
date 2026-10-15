@@ -26,6 +26,28 @@ export const transactionRepository = {
     });
   },
 
+  /**
+   * One page of the user's transactions, newest first.
+   * `id` is the last sort key so the order is stable between pages.
+   */
+  findPageByUserId: async (
+    userId: string,
+    limit: number,
+    offset: number,
+  ) => {
+    const [transactions, total] = await prisma.$transaction([
+      prisma.transaction.findMany({
+        where: { userId },
+        orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+        skip: offset,
+        take: limit,
+      }),
+      prisma.transaction.count({ where: { userId } }),
+    ]);
+
+    return { transactions, total };
+  },
+
   findById: async (id: string, userId: string) => {
     return prisma.transaction.findFirst({
       where: {

@@ -2,6 +2,7 @@ import { transactionRepository } from "../repositories/transaction.repository";
 
 import {
   CreateTransactionInput,
+  TransactionPage,
   TransactionResponse,
 } from "../types/transaction.types";
 
@@ -173,6 +174,39 @@ export const getTransactions = async (
     await transactionRepository.findAllByUserId(userId);
 
   return transactions.map(mapTransaction);
+};
+
+export const DEFAULT_TRANSACTION_PAGE_SIZE = 6;
+const MAX_TRANSACTION_PAGE_SIZE = 50;
+
+/** A page of transactions, sorted and paged in the database. */
+export const getTransactionsPage = async (
+  userId: string,
+  limit: number = DEFAULT_TRANSACTION_PAGE_SIZE,
+  offset: number = 0,
+): Promise<TransactionPage> => {
+  const safeLimit = Math.min(
+    Math.max(Math.floor(limit) || DEFAULT_TRANSACTION_PAGE_SIZE, 1),
+    MAX_TRANSACTION_PAGE_SIZE,
+  );
+  const safeOffset = Math.max(Math.floor(offset) || 0, 0);
+
+  const { transactions, total } =
+    await transactionRepository.findPageByUserId(userId, safeLimit, safeOffset);
+
+  const nextOffset = safeOffset + transactions.length;
+  const hasMore = nextOffset < total;
+
+  return {
+    transactions: transactions.map(mapTransaction),
+    pagination: {
+      limit: safeLimit,
+      offset: safeOffset,
+      total,
+      hasMore,
+      nextOffset: hasMore ? nextOffset : null,
+    },
+  };
 };
 
 export const getTransaction = async (
