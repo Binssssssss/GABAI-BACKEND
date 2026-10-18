@@ -16,6 +16,9 @@ export interface NotificationPrefs {
   smartReminders: boolean;
   focusAlerts: boolean;
   leadMinutes: 15 | 60 | 1440;
+  snoozeEnabled?: boolean;
+  snoozeMinutes?: 5 | 10 | 15 | 30;
+  ringCount?: 1 | 3 | 5;
 }
 
 export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
@@ -25,6 +28,9 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   smartReminders: true,
   focusAlerts: true,
   leadMinutes: 15,
+  snoozeEnabled: true,
+  snoozeMinutes: 5,
+  ringCount: 3,
 };
 
 const PROFILE_SELECT = {

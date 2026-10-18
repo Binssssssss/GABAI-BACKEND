@@ -16,6 +16,10 @@ const notificationPrefsSchema = z.object({
   smartReminders: z.boolean(),
   focusAlerts: z.boolean(),
   leadMinutes: z.union([z.literal(15), z.literal(60), z.literal(1440)]),
+  // Calendar alarm (snooze) settings.
+  snoozeEnabled: z.boolean().optional(),
+  snoozeMinutes: z.union([z.literal(5), z.literal(10), z.literal(15), z.literal(30)]).optional(),
+  ringCount: z.union([z.literal(1), z.literal(3), z.literal(5)]).optional(),
 });
 
 // Profile: name and photo. The photo is a small data URL (about 300 KB max).
