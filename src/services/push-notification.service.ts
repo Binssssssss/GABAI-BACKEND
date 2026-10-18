@@ -16,7 +16,27 @@ export type PushNotificationInput = {
   data?: Record<string, string>;
 };
 
-const ANDROID_CHANNEL_ID = "gabai-default";
+/**
+ * Android channel + sound for each kind of push. The ids and sound names
+ * must match the app's constants/notificationChannels.ts.
+ */
+const CHANNELS = {
+  general: { channelId: "gabai-general", sound: "gabai_chime" },
+  calendar: { channelId: "gabai-calendar", sound: "gabai_calendar" },
+  focus: { channelId: "gabai-focus", sound: "gabai_focus_done" },
+  alerts: { channelId: "gabai-alerts", sound: "gabai_alert" },
+} as const;
+
+const ALERT_TYPES = new Set(["task_overdue", "wallet_low_balance"]);
+
+function getChannel(type: string) {
+  if (ALERT_TYPES.has(type) || type.startsWith("security_")) {
+    return CHANNELS.alerts;
+  }
+  if (type.startsWith("calendar")) return CHANNELS.calendar;
+  if (type.startsWith("focus")) return CHANNELS.focus;
+  return CHANNELS.general;
+}
 
 const INVALID_TOKEN_CODES = new Set([
   "messaging/registration-token-not-registered",
@@ -70,6 +90,8 @@ export async function sendPushNotification(
     };
   }
 
+  const channel = getChannel(type);
+
   let successCount = 0;
   let failureCount = 0;
   const invalidTokens: string[] = [];
@@ -94,8 +116,8 @@ export async function sendPushNotification(
         android: {
           priority: "high",
           notification: {
-            channelId: ANDROID_CHANNEL_ID,
-            sound: "default",
+            channelId: channel.channelId,
+            sound: channel.sound,
           },
         },
       });
