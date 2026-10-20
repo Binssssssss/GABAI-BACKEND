@@ -22,7 +22,7 @@ export type PushNotificationInput = {
  */
 const CHANNELS = {
   general: { channelId: "gabai-general", sound: "gabai_chime" },
-  calendar: { channelId: "gabai-calendar", sound: "gabai_calendar" },
+  calendar: { channelId: "gabai-calendar-alarm", sound: "gabai_calendar" },
   focus: { channelId: "gabai-focus", sound: "gabai_focus_done" },
   alerts: { channelId: "gabai-alerts", sound: "gabai_alert" },
 } as const;
