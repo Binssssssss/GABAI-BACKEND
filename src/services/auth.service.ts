@@ -263,7 +263,7 @@ async login(input: LoginInput): Promise<LoginResponse> {
 
   if (!user) {
     throw new AppError(
-      "Invalid email or password",
+      "Incorrect email or password",
       401,
     );
   }
@@ -282,7 +282,7 @@ async login(input: LoginInput): Promise<LoginResponse> {
 
   if (!isPasswordValid) {
     throw new AppError(
-      "Invalid email or password",
+      "Incorrect email or password",
       401,
     );
   }
