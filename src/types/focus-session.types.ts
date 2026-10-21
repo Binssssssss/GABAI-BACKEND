@@ -56,6 +56,8 @@ export interface FocusSessionRecord {
   id: string;
   subject: string;
   durationMinutes: number;
+  /** Exact length in seconds (durationMinutes is rounded). */
+  durationSeconds: number;
   mode: FocusMode;
   completedAt: string;
   isStrict: boolean;
@@ -63,7 +65,9 @@ export interface FocusSessionRecord {
 
 export interface FocusStats {
   todayMinutes: number;
+  /** Exact focus time today in seconds. */
+  todaySeconds: number;
   todaySessions: number;
   streakDays: number;
   totalHours: number;
-}
+}

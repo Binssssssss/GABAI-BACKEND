@@ -44,21 +44,21 @@ class FocusSessionService {
     const allCompletedSessions =
       await focusSessionRepository.getAllCompletedSessions(userId);
 
-    const todayMinutes = todaySessions.reduce(
-      (total, session) => {
-        return total + Math.round(session.duration / 60);
-      },
+    // Add up exact seconds, then convert (no per-session rounding).
+    const todaySeconds = todaySessions.reduce(
+      (total, session) => total + session.duration,
       0
     );
+
+    const todayMinutes = Math.floor(todaySeconds / 60);
 
     const todaySessionsCount = todaySessions.length;
 
-    const totalMinutes = allCompletedSessions.reduce(
-      (total, session) => {
-        return total + Math.round(session.duration / 60);
-      },
-      0
-    );
+    const totalMinutes =
+      allCompletedSessions.reduce(
+        (total, session) => total + session.duration,
+        0
+      ) / 60;
 
     const totalHours = Number(
       (totalMinutes / 60).toFixed(1)
@@ -69,6 +69,7 @@ class FocusSessionService {
 
     return {
       todayMinutes,
+      todaySeconds,
       todaySessions: todaySessionsCount,
       streakDays,
       totalHours,
@@ -102,6 +103,8 @@ class FocusSessionService {
           durationMinutes: Math.round(
             session.duration / 60
           ),
+
+          durationSeconds: session.duration,
 
           mode: this.normalizeFocusMode(
             session.focusMode || "custom"
@@ -730,4 +733,4 @@ class FocusSessionService {
 }
 
 export const focusSessionService =
-  new FocusSessionService();
+  new FocusSessionService();
