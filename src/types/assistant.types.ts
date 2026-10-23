@@ -10,8 +10,10 @@ export interface AssistantChatRequest {
 
 export interface AssistantChatResponse {
   reply: string;
+  /** 'gemini' = answered by Gab (Gemini); 'offline' = built-in answers. */
+  source?: 'gemini' | 'offline';
 }
 
 export interface AssistantResetResponse {
   message: string;
-}
+}

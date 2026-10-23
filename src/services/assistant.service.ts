@@ -7,6 +7,7 @@ import {
   AssistantContext,
 } from '../repositories/assistant.repository';
 import { AppError } from '../utils/response';
+import { askGab, cleanHistory, isGabAiEnabled } from './gab.service';
 
 /*
  * GabAi Assistant (offline, multi-language)
@@ -24,7 +25,7 @@ import { AppError } from '../utils/response';
  * To change a reply, edit the TEXT section below.
  */
 
-const MAX_MESSAGE_LENGTH = 500;
+const MAX_MESSAGE_LENGTH = 1000;
 const MAX_LIST_ITEMS = 5;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const BULLET = '•';
@@ -1480,7 +1481,23 @@ export class AssistantService {
 
     const context = await assistantRepository.getUserContext(userId);
 
-    return { reply: cleanReply(answer(message, context)) };
+    // Safety first: messages about self-harm always get the fixed, tested
+    // crisis reply with hotlines (never left to the AI).
+    const words = normalize(message).split(' ').filter(Boolean);
+    const isCrisis = mentions(normalize(message), words, KEYWORDS.crisis);
+
+    // Gab (Gemini) answers when it is set up; otherwise, or if it fails,
+    // the built-in offline assistant answers so the chat never breaks.
+    if (!isCrisis && isGabAiEnabled()) {
+      try {
+        const reply = await askGab(message, cleanHistory(data?.history), context);
+        return { reply, source: 'gemini' };
+      } catch (error) {
+        console.error('[Gab] Gemini failed, using offline answers:', (error as Error)?.message ?? error);
+      }
+    }
+
+    return { reply: cleanReply(answer(message, context)), source: 'offline' };
   }
 
   async reset(): Promise<{ message: string }> {
@@ -1491,4 +1508,4 @@ export class AssistantService {
   }
 }
 
-export const assistantService = new AssistantService();
+export const assistantService = new AssistantService();

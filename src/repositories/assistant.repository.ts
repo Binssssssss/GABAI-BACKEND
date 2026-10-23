@@ -87,8 +87,8 @@ export class AssistantRepository {
       prisma.focusSession.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
-        take: 20,
-        select: { subject: true, status: true, createdAt: true },
+        take: 30,
+        select: { subject: true, status: true, createdAt: true, duration: true },
       }),
 
       prisma.note.count({
@@ -153,4 +153,4 @@ export const assistantRepository = new AssistantRepository();
 
 export type AssistantContext = Awaited<
   ReturnType<AssistantRepository['getUserContext']>
->;
+>;
