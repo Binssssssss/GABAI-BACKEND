@@ -1486,18 +1486,39 @@ export class AssistantService {
     const words = normalize(message).split(' ').filter(Boolean);
     const isCrisis = mentions(normalize(message), words, KEYWORDS.crisis);
 
-    // Gab (Gemini) answers when it is set up; otherwise, or if it fails,
-    // the built-in offline assistant answers so the chat never breaks.
-    if (!isCrisis && isGabAiEnabled()) {
-      try {
-        const reply = await askGab(message, cleanHistory(data?.history), context);
-        return { reply, source: 'gemini' };
-      } catch (error) {
-        console.error('[Gab] Gemini failed, using offline answers:', (error as Error)?.message ?? error);
-      }
+    if (isCrisis) {
+      return { reply: cleanReply(answer(message, context)), source: 'offline' };
     }
 
-    return { reply: cleanReply(answer(message, context)), source: 'offline' };
+    // Everything else is answered online by Gab (Gemini). There is no
+    // offline fallback: if Gemini can't answer, the app shows a clear message.
+    if (!isGabAiEnabled()) {
+      console.error('[Gab] GEMINI_API_KEY is not set on the server.');
+      throw new AppError('Gab is offline right now. Please try again later.', 503);
+    }
+
+    try {
+      const reply = await askGab(message, cleanHistory(data?.history), context);
+      return { reply, source: 'gemini' };
+    } catch (error) {
+      const status = Number((error as { status?: number })?.status);
+      console.error(
+        `[Gab] Gemini failed${Number.isFinite(status) ? ` (HTTP ${status})` : ''}:`,
+        (error as Error)?.message ?? error,
+      );
+
+      if (status === 429) {
+        throw new AppError(
+          'Gab is getting a lot of messages right now. Please wait a minute and try again.',
+          503,
+        );
+      }
+
+      throw new AppError(
+        "Gab can't connect right now. Please check your internet and try again.",
+        503,
+      );
+    }
   }
 
   async reset(): Promise<{ message: string }> {
