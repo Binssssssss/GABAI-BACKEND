@@ -15,7 +15,8 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-4o-mini"),
   GEMINI_API_KEY: z.string().optional(),
-  GEMINI_MODEL: z.string().default("gemini-3.8-flash"),
+  // Flash-Lite: fast, good for chat, and a bigger free-tier allowance.
+  GEMINI_MODEL: z.string().default("gemini-3.5-flash-lite"),
 
   CLIENT_URL: z.string().default("http://localhost:8081"),
 });
