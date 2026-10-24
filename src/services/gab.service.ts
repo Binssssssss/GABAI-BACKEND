@@ -67,6 +67,7 @@ USING THE STUDENT'S DATA
 
 STYLE
 - Short and easy to read on a phone: usually 2-6 short lines. Use "1." or "•" for lists and **bold** for the key items only. No headings, no tables, no code blocks.
+- The app shows plain text only: NEVER use LaTeX or $...$ math. Write math in plain text with Unicode symbols, e.g. r = Σxy / √(Σx² · Σy²), x², √x, ×, ÷, ≤, ≥, π.
 - End with a gentle next step or question when it helps.`;
 
 let client: GoogleGenAI | null = null;
@@ -229,6 +230,42 @@ export function buildContextText(context: AssistantContext): string {
 
 /* ---------- chat ---------- */
 
+const SUPERSCRIPTS: Record<string, string> = {
+  '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+  '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', n: 'ⁿ',
+};
+
+const LATEX_SYMBOLS: [RegExp, string][] = [
+  [/\\left|\\right/g, ''],
+  [/\\sum/g, 'Σ'], [/\\sqrt/g, '√'], [/\\times/g, '×'], [/\\cdot/g, '·'],
+  [/\\div/g, '÷'], [/\\pm/g, '±'], [/\\leq?/g, '≤'], [/\\geq?/g, '≥'],
+  [/\\neq/g, '≠'], [/\\approx/g, '≈'], [/\\pi/g, 'π'], [/\\infty/g, '∞'],
+];
+
+/** "x^2 \cdot \frac{a}{b}" -> "x² · (a)/(b)" */
+function latexToText(math: string): string {
+  // \sqrt{n} -> √(n) first, then \frac{a}{b} -> (a)/(b) (repeat for nested ones).
+  let out = math.replace(/\\sqrt\{([^{}]*)\}/g, '√($1)');
+  for (let i = 0; i < 3; i += 1) {
+    out = out.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)');
+  }
+  for (const [pattern, symbol] of LATEX_SYMBOLS) out = out.replace(pattern, symbol);
+  out = out.replace(/\^\{?([0-9n])\}?/g, (_x, d: string) => SUPERSCRIPTS[d] ?? `^${d}`);
+  out = out.replace(/_\{([^}]*)\}/g, '$1').replace(/\\[a-zA-Z]+/g, '').replace(/[{}]/g, '');
+  return out.trim();
+}
+
+/**
+ * The app shows plain text, so turn any LaTeX math the model still sends
+ * ("$r$", "$x^2$", "$$\frac{a}{b}$$") into readable text ("r", "x²", "(a)/(b)").
+ */
+export function toPlainMath(text: string): string {
+  return text
+    .replace(/\$\$([\s\S]+?)\$\$/g, (_m, math: string) => latexToText(math))
+    // Inline math must not start or end with a space, so "$5 and $10" is left alone.
+    .replace(/\$(\S(?:[^$\n]{0,78}\S)?)\$/g, (_m, math: string) => latexToText(math));
+}
+
 /** Keeps only valid, recent turns from the app. */
 export function cleanHistory(history: unknown): AssistantMessage[] {
   if (!Array.isArray(history)) return [];
@@ -313,5 +350,5 @@ export async function askGab(
     throw new Error('Gemini returned an empty reply.');
   }
 
-  return reply;
+  return toPlainMath(reply);
 }
