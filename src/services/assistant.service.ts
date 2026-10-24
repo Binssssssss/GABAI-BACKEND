@@ -8,6 +8,7 @@ import {
 } from '../repositories/assistant.repository';
 import { AppError } from '../utils/response';
 import { askGab, cleanHistory, isGabAiEnabled } from './gab.service';
+import { env } from '../config/env';
 
 /*
  * GabAi Assistant (offline, multi-language)
@@ -1497,8 +1498,12 @@ export class AssistantService {
       throw new AppError('Gab is offline right now. Please try again later.', 503);
     }
 
+    const startedAt = Date.now();
+    console.log(`[Gab] Chat request (${message.length} chars) → Gemini ${env.GEMINI_MODEL}`);
+
     try {
       const reply = await askGab(message, cleanHistory(data?.history), context);
+      console.log(`[Gab] Replied in ${Date.now() - startedAt} ms`);
       return { reply, source: 'gemini' };
     } catch (error) {
       const status = Number((error as { status?: number })?.status);

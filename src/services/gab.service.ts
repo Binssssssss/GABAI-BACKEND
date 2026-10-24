@@ -300,6 +300,10 @@ export async function askGab(
   try {
     reply = await generate(contents, systemInstruction, true);
   } catch (error) {
+    const status = Number((error as { status?: number })?.status);
+    // Wrong key, no access, or too many requests: retrying won't help.
+    if ([401, 403, 404, 429].includes(status)) throw error;
+
     // Some models don't accept the thinking setting; try once without it.
     console.warn('[Gab] Retrying without thinking config:', (error as Error)?.message);
     reply = await generate(contents, systemInstruction, false);
